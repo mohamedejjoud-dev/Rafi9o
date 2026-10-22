@@ -1,0 +1,444 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * Rafi9i — palette taken from the VEROX logo:
+ * fox orange (#F88541 at 500) for the brand, ink black for type, clean neutrals.
+ */
+@theme {
+  --color-orange-50: #fff7f1;
+  --color-orange-100: #ffecdc;
+  --color-orange-200: #fed4b3;
+  --color-orange-300: #fdb685;
+  --color-orange-400: #fa9d5e;
+  --color-orange-500: #f88541;
+  --color-orange-600: #d9631f;
+  --color-orange-700: #b04a17;
+  --color-orange-800: #8c3c17;
+  --color-orange-900: #713317;
+  --color-orange-950: #3d1809;
+
+  --color-amber-50: #fbf8f1;
+  --color-amber-100: #f4ecd8;
+  --color-amber-200: #e8d9b2;
+  --color-amber-300: #d7bf85;
+  --color-amber-400: #c1a465;
+  --color-amber-500: #a9894b;
+  --color-amber-600: #89713d;
+
+  --color-navy-50: #f8fafc;
+  --color-navy-100: #f1f5f9;
+  --color-navy-200: #e2e8f0;
+  --color-navy-300: #cbd5e1;
+  --color-navy-400: #94a3b8;
+  --color-navy-500: #64748b;
+  --color-navy-600: #475569;
+  --color-navy-700: #334155;
+  --color-navy-800: #1e293b;
+  --color-navy-900: #0f172a;
+  --color-navy-950: #020617;
+
+  --color-fox-50: #fff7f1;
+  --color-fox-100: #ffecdc;
+  --color-fox-200: #fed4b3;
+  --color-fox-300: #fdb685;
+  --color-fox-400: #fa9d5e;
+  --color-fox-500: #f88541;
+  --color-fox-600: #d9631f;
+  --color-fox-700: #b04a17;
+  --color-fox-800: #8c3c17;
+  --color-fox-900: #713317;
+
+  --color-pine-50: #ecfdf5;
+  --color-pine-100: #d1fae5;
+  --color-pine-200: #a7f3d0;
+  --color-pine-300: #6ee7b7;
+  --color-pine-400: #34d399;
+  --color-pine-500: #10b981;
+  --color-pine-600: #059669;
+  --color-pine-700: #047857;
+  --color-pine-800: #065f46;
+  --color-pine-900: #064e3b;
+}
+
+:root {
+  --radius: 0.875rem;
+  --background: #fcfbfa;
+  --foreground: #141210;
+  --card: #ffffff;
+  --card-foreground: #141210;
+  --popover: #ffffff;
+  --popover-foreground: #141210;
+  --primary: #b04a17;
+  --primary-foreground: #ffffff;
+  --secondary: #f2eeeb;
+  --secondary-foreground: #342c27;
+  --muted: #f2eeeb;
+  --muted-foreground: #70645d;
+  --accent: #ffecdc;
+  --accent-foreground: #8c3c17;
+  --destructive: #ef4444;
+  --border: #e8e0da;
+  --input: #e8e0da;
+  --ring: #f88541;
+  --chart-1: #f88541;
+  --chart-2: #b04a17;
+  --chart-3: #4c8067;
+  --chart-4: #6c7185;
+  --chart-5: #a9894b;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #141210;
+  --sidebar-primary: #b04a17;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffecdc;
+  --sidebar-accent-foreground: #8c3c17;
+  --sidebar-border: #e8e0da;
+  --sidebar-ring: #f88541;
+}
+
+/* ── Dark Mode Variables ── */
+.dark {
+  --background: #171412;
+  --foreground: #f5f0ec;
+  --card: #211c19;
+  --card-foreground: #f5f0ec;
+  --popover: #211c19;
+  --popover-foreground: #f5f0ec;
+  --primary: #f88541;
+  --primary-foreground: #141210;
+  --secondary: #2c2521;
+  --secondary-foreground: #e7ddd6;
+  --muted: #2c2521;
+  --muted-foreground: #b9aaa0;
+  --accent: #392821;
+  --accent-foreground: #fdb685;
+  --destructive: #f87171;
+  --border: #40352f;
+  --input: #40352f;
+  --ring: #f88541;
+  --chart-1: #f88541;
+  --chart-2: #fdb685;
+  --chart-3: #77a58b;
+  --chart-4: #a5a8ba;
+  --chart-5: #c1a465;
+  --sidebar: #1b1715;
+  --sidebar-foreground: #f5f0ec;
+  --sidebar-primary: #f88541;
+  --sidebar-primary-foreground: #141210;
+  --sidebar-accent: #392821;
+  --sidebar-accent-foreground: #fdb685;
+  --sidebar-border: #40352f;
+  --sidebar-ring: #f88541;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-color: var(--background);
+    background-image:
+      radial-gradient(at 100% 0%, rgba(248, 133, 65, 0.06) 0px, transparent 48%),
+      radial-gradient(at 0% 100%, rgba(169, 137, 75, 0.025) 0px, transparent 42%);
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(at 100% 0%, rgba(248, 133, 65, 0.08) 0px, transparent 48%),
+      radial-gradient(at 0% 100%, rgba(169, 137, 75, 0.04) 0px, transparent 42%);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+  }
+
+  .font-arabic,
+  .font-arabic body {
+    font-family: var(--font-arabic), var(--font-body), sans-serif;
+  }
+
+  ::selection {
+    background: rgba(248, 133, 65, 0.25);
+    color: #141210;
+  }
+
+  /* ── Enhanced Text Contrast for Light Mode ── */
+  html:not(.dark) {
+    color-scheme: light;
+  }
+
+  html:not(.dark) body {
+    color: #171717;
+  }
+
+  /* Legible secondary and muted text on light backgrounds */
+  html:not(.dark) .text-slate-400,
+  html:not(.dark) .text-stone-400,
+  html:not(.dark) .text-gray-400 {
+    color: #475569;
+  }
+
+  html:not(.dark) .text-slate-500,
+  html:not(.dark) .text-stone-500,
+  html:not(.dark) .text-gray-500 {
+    color: #334155;
+  }
+
+  html:not(.dark) .text-slate-600,
+  html:not(.dark) .text-stone-600,
+  html:not(.dark) .text-gray-600 {
+    color: #1e293b;
+  }
+
+  html:not(.dark) h1,
+  html:not(.dark) h2,
+  html:not(.dark) h3,
+  html:not(.dark) h4,
+  html:not(.dark) h5,
+  html:not(.dark) h6 {
+    color: #0f172a;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Sleek modern scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  .dark * {
+    scrollbar-color: #334155 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+  .dark *::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+
+/* ---------------------------------------------------------------- */
+/* Shared Primitives & Academic Polish Kit                          */
+/* ---------------------------------------------------------------- */
+
+@layer components {
+  /* Crisp Premium Card */
+  .rafi-card {
+    border-radius: 1.25rem;
+    border: 1px solid #e8e0da;
+    background: #ffffff;
+    box-shadow:
+      0 1px 3px rgba(39, 29, 24, 0.04),
+      0 6px 18px -4px rgba(39, 29, 24, 0.06);
+  }
+
+  .dark .rafi-card {
+    border-color: #40352f;
+    background: #211c19;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+
+  .rafi-card-hover {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .rafi-card-hover:hover {
+    transform: translateY(-3px);
+    border-color: #fdb685;
+    box-shadow:
+      0 12px 30px -8px rgba(39, 29, 24, 0.1),
+      0 4px 6px -2px rgba(39, 29, 24, 0.04);
+  }
+
+  /* Eyebrow label */
+  .rafi-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #b04a17;
+  }
+
+  /* Icon chip */
+  .rafi-icon-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.875rem;
+    background: #fff7f1;
+    border: 1px solid #ffecdc;
+    color: #d9631f;
+    flex-shrink: 0;
+  }
+
+  .rf-zellige {
+    position: relative;
+    isolation: isolate;
+  }
+  .rf-zellige::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+    background-size: 20px 20px;
+  }
+
+  .rf-skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -3.5rem;
+    z-index: 60;
+    border-radius: 0.75rem;
+    background: #0f172a;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: top 0.15s ease;
+  }
+  .rf-skip-link:focus-visible {
+    top: 0.75rem;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* 3D Motion & Floating Keyframes                                   */
+/* ---------------------------------------------------------------- */
+
+@keyframes float-character {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(0.8deg);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.rf-float {
+  animation: float-character 3.8s ease-in-out infinite;
+}
+
+.rf-pulse {
+  animation: pulse-ring 2.5s ease-in-out infinite;
+}
+
+@keyframes rf-bounce {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  40% { transform: translateY(-12%) scale(0.98, 1.02); }
+  60% { transform: translateY(0) scale(1.03, 0.97); }
+}
+
+@keyframes rf-sparkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(15deg); }
+}
+
+.rf-bounce {
+  animation: rf-bounce 1.6s ease-in-out infinite;
+}
+
+.rf-sparkle {
+  animation: rf-sparkle 1.8s ease-in-out infinite;
+}
+
+.rf-slide {
+  transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rf-float,
+  .rf-pulse,
+  .rf-bounce,
+  .rf-sparkle {
+    animation: none;
+  }
+  .rf-slide {
+    transition: none;
+  }
+}

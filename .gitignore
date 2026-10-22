@@ -1,0 +1,47 @@
+# Compiled source #
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/public/fonts-manifest.dev.json
+
+# Environment files #
+.env
+.env.backup
+.env.production
+.env.*
+!.env.example
+
+# Next.js frontend #
+rafi9i-web/node_modules/
+rafi9i-web/.next/
+rafi9i-web/out/
+rafi9i-web/build/
+rafi9i-web/.vercel/
+rafi9i-web/*.tsbuildinfo
+rafi9i-web/.env*
+!rafi9i-web/.env.example
+
+# Testing & Cache #
+/.phpunit.cache
+.phpunit.result.cache
+/storage/*.key
+/storage/pail
+*.log
+
+# OS & Editor #
+/.claude/
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/.cursor/
+/.codex
+/.nova
+/.zed
+.phpactor.json
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+/auth.json
