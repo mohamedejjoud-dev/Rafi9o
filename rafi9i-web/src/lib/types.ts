@@ -145,7 +145,15 @@ export type AuthResponse = {
   token: string;
 };
 
-export type RegisterPayload = { name: string; email: string; password: string; password_confirmation?: string };
+export type SendVerificationCodePayload = { email: string; name?: string };
+export type VerifyCodePayload = { email: string; code: string };
+export type RegisterPayload = {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation?: string;
+  verification_code?: string;
+};
 export type LoginPayload = { email: string; password: string };
 export type ProfileUpdatePayload = Partial<
   Pick<UserProfile, "name" | "email" | "city" | "bacStream" | "language" | "onboardingCompleted">

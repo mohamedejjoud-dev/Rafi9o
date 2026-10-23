@@ -16,7 +16,13 @@ import {
   setSession,
   type StoredSession,
 } from "./api";
-import type { LoginPayload, RegisterPayload, UserProfile } from "./types";
+import type {
+  LoginPayload,
+  RegisterPayload,
+  SendVerificationCodePayload,
+  VerifyCodePayload,
+  UserProfile,
+} from "./types";
 
 /* ------------------------------------------------------------------ */
 /* Plain helpers                                                       */
@@ -32,6 +38,18 @@ export async function register(payload: RegisterPayload): Promise<UserProfile> {
   const res = await api.auth.register(payload);
   setSession(res);
   return res.user;
+}
+
+export async function sendVerificationCode(
+  payload: SendVerificationCodePayload
+): Promise<{ message: string; dev_code?: string }> {
+  return await api.auth.sendVerificationCode(payload);
+}
+
+export async function verifyCode(
+  payload: VerifyCodePayload
+): Promise<{ message: string }> {
+  return await api.auth.verifyCode(payload);
 }
 
 export function logout(): void {

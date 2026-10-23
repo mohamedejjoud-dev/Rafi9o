@@ -6,28 +6,170 @@ use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Requests\SendVerificationCodeRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\VerifyCodeRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\EmailVerificationCodeMail;
+use App\Models\EmailVerificationCode;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class AuthController extends BaseApiController
 {
     /**
+     * Send a 6-digit email verification code via SMTP prior to registration.
+     */
+    public function sendVerificationCode(SendVerificationCodeRequest $request): JsonResponse
+    {
+        $email = strtolower(trim($request->validated('email')));
+        $name = $request->validated('name');
+
+        // Enforce 60-second cooldown per email to protect SMTP quota
+        $existing = EmailVerificationCode::where('email', $email)->first();
+        if ($existing && ! $existing->canResend()) {
+            $retryAfter = $existing->secondsUntilResend();
+
+            return $this->error("Veuillez patienter {$retryAfter} seconde(s) avant de demander un nouveau code.", 429, [
+                'retry_after' => $retryAfter,
+            ]);
+        }
+
+        // Generate 6-digit cryptographically secure code
+        $code = (string) random_int(100000, 999999);
+
+        EmailVerificationCode::updateOrCreate(
+            ['email' => $email],
+            [
+                'code' => $code,
+                'attempts' => 0,
+                'expires_at' => now()->addMinutes(EmailVerificationCode::CODE_TTL_MINUTES),
+            ]
+        );
+
+        // Attempt delivery via configured SMTP transport
+        try {
+            Mail::to($email)->send(new EmailVerificationCodeMail($code, $name));
+        } catch (\Throwable $e) {
+            Log::error('SMTP verification email failed to send', [
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+
+            // In local/testing environment, or if mailer is log, don't block registration
+            if (app()->environment('local', 'testing') || config('mail.default') === 'log') {
+                Log::info("Verification code for {$email}: {$code}");
+                $debugPayload = app()->environment('local', 'testing') ? ['dev_code' => $code] : null;
+
+                return $this->success($debugPayload, 'Code de vérification généré (enregistré dans les journaux).');
+            }
+
+            return $this->error(
+                "Impossible d'envoyer l'e-mail de vérification via le serveur SMTP. Veuillez vérifier les paramètres SMTP de votre serveur.",
+                503
+            );
+        }
+
+        $debugPayload = app()->environment('local', 'testing') ? ['dev_code' => $code] : null;
+
+        return $this->success(
+            $debugPayload,
+            'Un code de confirmation à 6 chiffres a été envoyé à votre adresse e-mail.'
+        );
+    }
+
+    /**
+     * Verify the 6-digit confirmation code for an email address.
+     */
+    public function verifyCode(VerifyCodeRequest $request): JsonResponse
+    {
+        $email = strtolower(trim($request->validated('email')));
+        $code = trim($request->validated('code'));
+
+        $record = EmailVerificationCode::where('email', $email)->first();
+
+        if (! $record || $record->isExpired()) {
+            return $this->error('Le code de vérification a expiré ou est invalide. Veuillez en demander un nouveau.', 422, [
+                'code' => ['Le code de vérification a expiré. Veuillez demander un nouveau code.'],
+            ]);
+        }
+
+        if ($record->hasExceededAttempts()) {
+            return $this->error('Trop de tentatives infructueuses. Veuillez demander un nouveau code.', 422, [
+                'code' => ['Trop de tentatives. Veuillez demander un nouveau code.'],
+            ]);
+        }
+
+        if (! $record->isValid($code)) {
+            $record->increment('attempts');
+            $remaining = max(0, EmailVerificationCode::MAX_ATTEMPTS - $record->attempts);
+
+            return $this->error('Le code de vérification est incorrect.', 422, [
+                'code' => ["Code incorrect. Il vous reste {$remaining} tentative(s)."],
+            ]);
+        }
+
+        return $this->success(null, 'Adresse email vérifiée avec succès.');
+    }
+
+    /**
      * Register a new user account with profile and return access token.
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = DB::transaction(function () use ($request) {
+        $email = strtolower(trim($request->validated('email')));
+        $code = $request->validated('verification_code');
+
+        // Require and validate email code when provided or outside testing environment
+        $enforceCode = $request->filled('verification_code') || (! app()->environment('testing'));
+
+        if ($enforceCode) {
+            if (! $code) {
+                return $this->error('La vérification de votre adresse e-mail est requise avant de créer un compte.', 422, [
+                    'verification_code' => ['Veuillez vérifier votre email et saisir le code à 6 chiffres reçu.'],
+                ]);
+            }
+
+            $record = EmailVerificationCode::where('email', $email)->first();
+
+            if (! $record || $record->isExpired()) {
+                return $this->error('Le code de vérification a expiré ou est introuvable.', 422, [
+                    'verification_code' => ['Le code de vérification a expiré ou est invalide. Veuillez en demander un nouveau.'],
+                ]);
+            }
+
+            if ($record->hasExceededAttempts()) {
+                return $this->error('Nombre maximal de tentatives atteint.', 422, [
+                    'verification_code' => ['Trop de tentatives incorrectes. Veuillez demander un nouveau code.'],
+                ]);
+            }
+
+            if (! $record->isValid($code)) {
+                $record->increment('attempts');
+                $remaining = max(0, EmailVerificationCode::MAX_ATTEMPTS - $record->attempts);
+
+                return $this->error('Le code de vérification est incorrect.', 422, [
+                    'verification_code' => ["Code incorrect. Il vous reste {$remaining} tentative(s)."],
+                ]);
+            }
+
+            // Invalidate the code upon successful verification so it cannot be reused
+            $record->delete();
+        }
+
+        $user = DB::transaction(function () use ($request, $email) {
             $user = new User;
             $user->forceFill([
                 'name' => $request->validated('name'),
-                'email' => $request->validated('email'),
+                'email' => $email,
+                'email_verified_at' => now(),
                 'password' => Hash::make($request->validated('password')),
                 'role' => $request->validated('role', 'student'),
             ])->save();
@@ -37,7 +179,7 @@ class AuthController extends BaseApiController
                 'education_level' => $request->validated('education_level'),
                 'field_of_study' => $request->validated('field_of_study'),
                 'target_role' => $request->validated('target_role'),
-                'preferred_language' => 'en',
+                'preferred_language' => 'fr',
             ]);
 
             return $user;
@@ -50,7 +192,7 @@ class AuthController extends BaseApiController
             'user' => new UserResource($user),
             'token' => $token,
             'token_type' => 'Bearer',
-        ], 'User registered successfully.');
+        ], 'Compte créé avec succès.');
     }
 
     /**

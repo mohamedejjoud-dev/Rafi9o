@@ -29,6 +29,8 @@ import {
   LoginPayload,
   ProfileUpdatePayload,
   RegisterPayload,
+  SendVerificationCodePayload,
+  VerifyCodePayload,
   SubscriptionStatus,
   TrialStatus,
 } from "./types";
@@ -276,6 +278,18 @@ async function ensureAssessmentSessionId(kind: AssessmentKind): Promise<string> 
 
 export const api = {
   auth: {
+    sendVerificationCode: (payload: SendVerificationCodePayload) =>
+      call<{ message: string; dev_code?: string }>(
+        "/api/v1/auth/send-verification-code",
+        { method: "POST", body: JSON.stringify(payload) },
+        () => mockApi.sendVerificationCode(payload)
+      ),
+    verifyCode: (payload: VerifyCodePayload) =>
+      call<{ message: string }>(
+        "/api/v1/auth/verify-code",
+        { method: "POST", body: JSON.stringify(payload) },
+        () => ({ message: "Code vérifié avec succès." })
+      ),
     register: (payload: RegisterPayload) =>
       call<AuthResponse>(
         "/api/v1/auth/register",

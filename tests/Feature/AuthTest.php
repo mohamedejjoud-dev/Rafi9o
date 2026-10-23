@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Mail\EmailVerificationCodeMail;
+use App\Models\EmailVerificationCode;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
@@ -354,5 +357,199 @@ class AuthTest extends TestCase
                 'status' => 'error',
                 'message' => 'Too many authentication attempts. Please try again in 1 minute.',
             ]);
+    }
+
+    public function test_can_request_email_verification_code_via_smtp(): void
+    {
+        Mail::fake();
+
+        $response = $this->postJson('/api/auth/send-verification-code', [
+            'email' => 'newstudent@example.com',
+            'name' => 'Sara Mansouri',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['status', 'message']);
+
+        // Assert code was saved to database
+        $this->assertDatabaseHas('email_verification_codes', [
+            'email' => 'newstudent@example.com',
+        ]);
+
+        $record = EmailVerificationCode::where('email', 'newstudent@example.com')->first();
+        $this->assertNotNull($record);
+        $this->assertEquals(6, strlen($record->code));
+
+        // Assert verification email was queued/sent via Mailable
+        Mail::assertSent(EmailVerificationCodeMail::class, function (EmailVerificationCodeMail $mail) use ($record) {
+            return $mail->hasTo('newstudent@example.com') && $mail->code === $record->code;
+        });
+    }
+
+    public function test_request_email_verification_code_fails_if_email_is_already_registered(): void
+    {
+        Mail::fake();
+
+        $response = $this->postJson('/api/auth/send-verification-code', [
+            'email' => 'student@rafi9i.com', // Seeded account
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_request_email_verification_code_enforces_resend_cooldown(): void
+    {
+        Mail::fake();
+
+        // 1st request
+        $first = $this->postJson('/api/auth/send-verification-code', [
+            'email' => 'cooldown@example.com',
+        ]);
+        $first->assertStatus(200);
+
+        // Immediate 2nd request should hit cooldown (429)
+        $second = $this->postJson('/api/auth/send-verification-code', [
+            'email' => 'cooldown@example.com',
+        ]);
+        $second->assertStatus(429)
+            ->assertJsonStructure(['status', 'message', 'errors' => ['retry_after']]);
+    }
+
+    public function test_can_verify_email_code_successfully(): void
+    {
+        $record = EmailVerificationCode::factory()->create([
+            'email' => 'testverify@example.com',
+            'code' => '458921',
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        $response = $this->postJson('/api/auth/verify-code', [
+            'email' => 'testverify@example.com',
+            'code' => '458921',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+            ]);
+    }
+
+    public function test_verify_code_fails_on_incorrect_code_and_tracks_attempts(): void
+    {
+        EmailVerificationCode::factory()->create([
+            'email' => 'testfail@example.com',
+            'code' => '123456',
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        $response = $this->postJson('/api/auth/verify-code', [
+            'email' => 'testfail@example.com',
+            'code' => '999999',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['code']);
+
+        $updated = EmailVerificationCode::where('email', 'testfail@example.com')->first();
+        $this->assertEquals(1, $updated->attempts);
+    }
+
+    public function test_user_can_register_with_valid_verification_code(): void
+    {
+        EmailVerificationCode::factory()->create([
+            'email' => 'verified.student@example.com',
+            'code' => '654321',
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        $payload = [
+            'name' => 'Aya Bennani',
+            'email' => 'verified.student@example.com',
+            'password' => 'SecurePass123',
+            'password_confirmation' => 'SecurePass123',
+            'verification_code' => '654321',
+        ];
+
+        $response = $this->postJson('/api/auth/register', $payload);
+
+        $response->assertStatus(201)
+            ->assertJson([
+                'status' => 'success',
+                'data' => [
+                    'user' => [
+                        'email' => 'verified.student@example.com',
+                    ],
+                ],
+            ]);
+
+        // Assert user email is verified
+        $user = User::where('email', 'verified.student@example.com')->first();
+        $this->assertNotNull($user->email_verified_at);
+
+        // Assert code was deleted after successful registration
+        $this->assertDatabaseMissing('email_verification_codes', [
+            'email' => 'verified.student@example.com',
+        ]);
+    }
+
+    public function test_registration_fails_with_invalid_verification_code(): void
+    {
+        EmailVerificationCode::factory()->create([
+            'email' => 'invalid.code@example.com',
+            'code' => '654321',
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        $payload = [
+            'name' => 'Fake User',
+            'email' => 'invalid.code@example.com',
+            'password' => 'SecurePass123',
+            'password_confirmation' => 'SecurePass123',
+            'verification_code' => '000000', // Incorrect
+        ];
+
+        $response = $this->postJson('/api/auth/register', $payload);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['verification_code']);
+
+        $this->assertDatabaseMissing('users', ['email' => 'invalid.code@example.com']);
+    }
+
+    public function test_registration_requires_strong_password_with_letters_and_numbers(): void
+    {
+        // Only letters
+        $resLettersOnly = $this->postJson('/api/auth/register', [
+            'name' => 'User One',
+            'email' => 'user1@example.com',
+            'password' => 'onlyletters',
+            'password_confirmation' => 'onlyletters',
+        ]);
+        $resLettersOnly->assertStatus(422)->assertJsonValidationErrors(['password']);
+
+        // Only numbers
+        $resNumbersOnly = $this->postJson('/api/auth/register', [
+            'name' => 'User Two',
+            'email' => 'user2@example.com',
+            'password' => '123456789',
+            'password_confirmation' => '123456789',
+        ]);
+        $resNumbersOnly->assertStatus(422)->assertJsonValidationErrors(['password']);
+
+        // Too short (< 8 chars)
+        $resTooShort = $this->postJson('/api/auth/register', [
+            'name' => 'User Three',
+            'email' => 'user3@example.com',
+            'password' => 'Pass1',
+            'password_confirmation' => 'Pass1',
+        ]);
+        $resTooShort->assertStatus(422)->assertJsonValidationErrors(['password']);
     }
 }

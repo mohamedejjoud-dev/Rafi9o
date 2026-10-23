@@ -33,6 +33,8 @@ Route::get('/health', function () {
 $registerAuthRoutes = function () {
     // Public routes with brute-force rate limiting (5 attempts/min)
     Route::middleware('throttle:auth')->group(function () {
+        Route::post('/send-verification-code', [AuthController::class, 'sendVerificationCode']);
+        Route::post('/verify-code', [AuthController::class, 'verifyCode']);
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);

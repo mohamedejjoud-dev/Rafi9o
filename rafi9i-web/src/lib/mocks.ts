@@ -29,6 +29,7 @@ import {
   OrientationResult,
   ProfileUpdatePayload,
   RegisterPayload,
+  SendVerificationCodePayload,
   RoadmapStep,
   SoftSkillPriority,
   SubscriptionStatus,
@@ -2406,6 +2407,16 @@ export const mockApi = {
     all[index] = updated;
     write(MOCK_KEYS.adminSubscribers, all);
     return updated;
+  },
+
+  sendVerificationCode(payload: SendVerificationCodePayload): { message: string; dev_code?: string } {
+    const users = read<MockUserRecord[]>(MOCK_KEYS.users, []);
+    if (users.some((u) => u.email.toLowerCase() === payload.email.toLowerCase())) {
+      throw new ApiError("validation", tr("cnt.mock.error.accountExists"), 422, {
+        email: [tr("cnt.mock.error.accountExists")],
+      });
+    }
+    return { message: "Code de confirmation envoyé.", dev_code: "123456" };
   },
 
   register(payload: RegisterPayload): AuthResponse {
