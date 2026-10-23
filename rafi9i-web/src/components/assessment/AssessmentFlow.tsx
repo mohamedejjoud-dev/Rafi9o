@@ -11,7 +11,7 @@
  */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -23,6 +23,7 @@ import ReviewSummary from "@/components/assessment/ReviewSummary";
 import ErrorState from "@/components/shared/ErrorState";
 import PageLoader from "@/components/shared/PageLoader";
 import DemoBadge from "@/components/shared/DemoBadge";
+import BackButton from "@/components/shared/BackButton";
 import { useAssessmentStore } from "@/lib/assessment-store";
 import type { AssessmentQuestion } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
@@ -121,13 +122,34 @@ export default function AssessmentFlow({
   const currentQuestion: AssessmentQuestion | undefined = questions[step];
   const progress = Math.round((step / Math.max(1, total)) * 100);
 
+  /* Single-choice and scale answers advance on their own after a short pause
+     so the student sees the selection; multi-select questions keep "Next". */
+  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelAutoAdvance = useCallback(() => {
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+    autoAdvanceTimer.current = null;
+  }, []);
+  useEffect(() => cancelAutoAdvance, [cancelAutoAdvance]);
+
   const handleChange = useCallback(
     (question: AssessmentQuestion, value: unknown) => {
       form.setValue(question.id, value);
       setDraftAnswer(question.id as never, value);
       setStepError(undefined);
+
+      if (question.type === "multi" || value === undefined || value === "") return;
+      const answeredIndex = questions.findIndex((q) => q.id === question.id);
+      cancelAutoAdvance();
+      autoAdvanceTimer.current = setTimeout(() => {
+        autoAdvanceTimer.current = null;
+        if (answeredIndex >= questions.length - 1) {
+          setPhase("review");
+        } else {
+          setStep(answeredIndex + 1);
+        }
+      }, 350);
     },
-    [form, setDraftAnswer]
+    [form, setDraftAnswer, questions, cancelAutoAdvance]
   );
 
   const validateCurrent = useCallback((): boolean => {
@@ -161,6 +183,7 @@ export default function AssessmentFlow({
   }, [currentQuestion, form, locale]);
 
   const goNext = useCallback(() => {
+    cancelAutoAdvance();
     if (!validateCurrent()) return;
     setStepError(undefined);
     if (step < total - 1) {
@@ -168,13 +191,14 @@ export default function AssessmentFlow({
     } else {
       setPhase("review");
     }
-  }, [step, total, validateCurrent]);
+  }, [step, total, validateCurrent, cancelAutoAdvance]);
 
   const goBack = useCallback(() => {
+    cancelAutoAdvance();
     setStepError(undefined);
     if (step > 0) setStep(step - 1);
     else setPhase("intro");
-  }, [step]);
+  }, [step, cancelAutoAdvance]);
 
   const doSubmit = useCallback(
     async (values: Record<string, unknown>) => {
@@ -323,13 +347,12 @@ export default function AssessmentFlow({
               {point3}
             </li>
           </ul>
-          <Button
-            size="lg"
-            onClick={() => setPhase("questions")}
-            className="mt-6 w-full gap-2 sm:w-auto"
-          >
-            {startText} <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
-          </Button>
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row">
+            <BackButton size="lg" />
+            <Button size="lg" onClick={() => setPhase("questions")} className="w-full gap-2 sm:w-auto">
+              {startText} <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -343,6 +366,10 @@ export default function AssessmentFlow({
         values={form.getValues()}
         onEdit={(index) => {
           setStep(index);
+          setPhase("questions");
+        }}
+        onBack={() => {
+          setStep(total - 1);
           setPhase("questions");
         }}
         onConfirm={confirmSubmit}
@@ -496,7 +523,7 @@ export default function AssessmentFlow({
 
       {/* Navigation */}
       <div className="sticky bottom-4 mt-5 flex items-center justify-between gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white/90 dark:bg-stone-900/90 p-3 shadow-lg backdrop-blur">
-        <Button variant="ghost" onClick={goBack} className="gap-1.5">
+        <Button variant="outline" onClick={goBack} className="gap-1.5">
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />
           {backLabel}
         </Button>

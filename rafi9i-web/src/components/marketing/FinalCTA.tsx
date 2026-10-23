@@ -34,7 +34,7 @@ export default function FinalCTA() {
           <PrimaryButton
             href={PRODUCT_ROUTES.register}
             size="lg"
-            className="mt-8 w-full border-slate-950! bg-slate-950! text-white! hover:bg-slate-800! sm:w-auto"
+            className="mt-8 w-full border-stone-950! bg-stone-950! text-white! hover:bg-stone-800! sm:w-auto"
           >
             <span>{t("cta.button")}</span>
             <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden />

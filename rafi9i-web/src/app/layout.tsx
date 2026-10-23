@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Geist_Mono, Cairo } from "next/font/google";
+import { Figtree, Geist_Mono, Noto_Sans, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { OG_DEFAULT_IMAGE, SITE_NAME, SITE_URL } from "@/lib/constants";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 
-const plusJakarta = Plus_Jakarta_Sans({
+/* Typography (UI/UX skill "clean, accessible, professional" pairing):
+   Figtree for headings, Noto Sans for body text, and its sister family
+   Noto Sans Arabic so Arabic and Darija read as one consistent system. */
+const notoSans = Noto_Sans({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const figtree = Figtree({
+  variable: "--font-heading",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -17,10 +26,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const cairo = Cairo({
+const notoSansArabic = Noto_Sans_Arabic({
   variable: "--font-arabic",
-  subsets: ["arabic", "latin"],
-  weight: ["400", "600", "700", "800"],
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -83,7 +92,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${plusJakarta.variable} ${geistMono.variable} ${cairo.variable} font-sans antialiased bg-background text-foreground selection:bg-orange-500/20 selection:text-orange-950`}
+        className={`${notoSans.variable} ${figtree.variable} ${geistMono.variable} ${notoSansArabic.variable} font-sans antialiased bg-background text-foreground selection:bg-orange-500/20 selection:text-orange-950`}
       >
         <ThemeProvider>
           <I18nProvider>

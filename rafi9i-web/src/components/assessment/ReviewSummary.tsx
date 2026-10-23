@@ -3,7 +3,7 @@
  */
 "use client";
 
-import { CheckCircle2, PencilLine } from "lucide-react";
+import { ArrowLeft, CheckCircle2, PencilLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FoxGuide from "@/components/fox/FoxGuide";
 import { optionLabel, questionLabel } from "@/lib/mocks";
@@ -14,11 +14,13 @@ export interface ReviewSummaryProps {
   questions: AssessmentQuestion[];
   values: Record<string, unknown>;
   onEdit: (index: number) => void;
+  /** Return to the last question. */
+  onBack: () => void;
   onConfirm: () => void;
   submitting: boolean;
 }
 
-export default function ReviewSummary({ questions, values, onEdit, onConfirm, submitting }: ReviewSummaryProps) {
+export default function ReviewSummary({ questions, values, onEdit, onBack, onConfirm, submitting }: ReviewSummaryProps) {
   const { locale, dir } = useI18n();
 
   const guideMsg =
@@ -154,7 +156,8 @@ export default function ReviewSummary({ questions, values, onEdit, onConfirm, su
       </div>
 
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button variant="outline" onClick={() => onEdit(0)} disabled={submitting}>
+        <Button variant="outline" onClick={onBack} disabled={submitting} className="gap-1.5">
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />
           {backText}
         </Button>
         <Button

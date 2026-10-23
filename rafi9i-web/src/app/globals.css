@@ -7,6 +7,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body);
+  --font-display: var(--font-heading), var(--font-body), sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -212,13 +213,42 @@
       radial-gradient(at 0% 100%, rgba(169, 137, 75, 0.04) 0px, transparent 42%);
   }
 
+  body {
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+  }
+
   h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.025em;
+    font-family: var(--font-heading), var(--font-body), sans-serif;
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+  }
+
+  /* Arabic & Darija: one Arabic family for everything, no negative tracking
+     (it breaks letter joining) and a taller line-height for diacritics. */
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] h4,
+  html[dir="rtl"] h5,
+  html[dir="rtl"] h6 {
+    font-family: var(--font-arabic), var(--font-heading), sans-serif;
+    letter-spacing: 0;
+    line-height: 1.4;
+  }
+
+  html[dir="rtl"] body {
+    line-height: 1.75;
   }
 
   .font-arabic,
   .font-arabic body {
     font-family: var(--font-arabic), var(--font-body), sans-serif;
+  }
+
+  /* Latin words inside Arabic text (CPGE, ENSA, emails) fall back to Noto Sans. */
+  html[dir="rtl"] [class*="tracking-"] {
+    letter-spacing: 0;
   }
 
   /* Logo wordmark: "Rafi9i" in FR/EN, "رفيقي" in AR/Darija. Keyed on the
