@@ -17,6 +17,8 @@
  * All fetch logic lives here — pages never call fetch directly.
  */
 import {
+  AdminSubscriber,
+  AdminSubscriberList,
   ApiEnvelope,
   ApiError,
   ApiFieldErrors,
@@ -27,9 +29,14 @@ import {
   LoginPayload,
   ProfileUpdatePayload,
   RegisterPayload,
+  SubscriptionStatus,
   TrialStatus,
 } from "./types";
 import { mockApi, MOCK_KEYS } from "./mocks";
+import { getStoredLocale, translate } from "./i18n";
+
+/** User-visible error message in the current UI language. */
+const errorText = (key: string) => translate(getStoredLocale(), key);
 
 /* ------------------------------------------------------------------ */
 /* Environment + mode                                                  */
@@ -146,22 +153,22 @@ type CallOptions = { auth?: boolean };
 type LaravelErrorBody = { message?: string; errors?: ApiFieldErrors };
 
 async function mapHttpError(res: Response): Promise<never> {
-  let message = "Une erreur est survenue. Réessaie dans un instant.";
+  let message = errorText("cnt.api.error.default");
   let code: ApiError["code"] = "server";
   let fieldErrors: ApiFieldErrors | undefined;
 
   if (res.status === 401) {
     code = "unauthorized";
-    message = "Session expirée. Reconnecte-toi.";
+    message = errorText("cnt.api.error.unauthorized");
   } else if (res.status === 403) {
     code = "forbidden";
-    message = "Accès refusé pour ton niveau d'accès.";
+    message = errorText("cnt.api.error.forbidden");
   } else if (res.status === 404) {
     code = "not_found";
-    message = "Ressource introuvable.";
+    message = errorText("cnt.api.error.notFound");
   } else if (res.status === 422) {
     code = "validation";
-    message = "Données invalides.";
+    message = errorText("cnt.api.error.validation");
   }
 
   try {
@@ -189,7 +196,7 @@ function unwrapEnvelope<T>(body: unknown): T {
     }
     throw new ApiError(
       "validation",
-      envelope.message ?? "Données invalides.",
+      envelope.message ?? errorText("cnt.api.error.validation"),
       422,
       envelope.errors
     );
@@ -209,6 +216,8 @@ async function call<T>(
       const headers: Record<string, string> = {
         Accept: "application/json",
         "Content-Type": "application/json",
+        // The backend localizes questions and generated results (fr | en | ar | ary).
+        "X-Locale": getStoredLocale(),
         ...(init?.headers as Record<string, string> | undefined),
       };
       if (options.auth) {
@@ -344,8 +353,49 @@ export const api = {
   },
 
   trial: {
-    start: () => call<TrialStatus>("/api/v1/trial/start", { method: "POST" }, () => mockApi.startTrial(), { auth: true }),
     status: () => call<TrialStatus>("/api/v1/trial/status", { method: "GET" }, () => mockApi.getTrialStatus(), { auth: true }),
+  },
+
+  /** Premium is paid by bank transfer over WhatsApp, then verified by an admin. */
+  premium: {
+    request: () =>
+      call<TrialStatus>("/api/v1/premium/request", { method: "POST" }, () => mockApi.requestPremium(), { auth: true }),
+  },
+
+  admin: {
+    subscribers: (params: { status?: SubscriptionStatus; search?: string; page?: number } = {}) => {
+      const query = new URLSearchParams();
+      if (params.status) query.set("status", params.status);
+      if (params.search) query.set("search", params.search);
+      if (params.page) query.set("page", String(params.page));
+      const qs = query.toString();
+      return call<AdminSubscriberList>(
+        `/api/v1/admin/subscriptions${qs ? `?${qs}` : ""}`,
+        { method: "GET" },
+        () => mockApi.adminSubscribers(params),
+        { auth: true }
+      );
+    },
+    activate: (id: string, durationMonths?: number) =>
+      call<AdminSubscriber>(
+        `/api/v1/admin/users/${encodeURIComponent(id)}/activate-premium`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            duration_months: durationMonths ?? null,
+            notes: "Virement vérifié via WhatsApp (19 DH)",
+          }),
+        },
+        () => mockApi.adminSetStatus(id, "premium", durationMonths),
+        { auth: true }
+      ),
+    deactivate: (id: string) =>
+      call<AdminSubscriber>(
+        `/api/v1/admin/users/${encodeURIComponent(id)}/deactivate-premium`,
+        { method: "POST", body: JSON.stringify({}) },
+        () => mockApi.adminSetStatus(id, "free"),
+        { auth: true }
+      ),
   },
 
   results: {
@@ -384,11 +434,10 @@ export const api = {
         "/api/v1/agent/chat",
         { method: "POST", body: JSON.stringify(payload) },
         () => ({
-          reply:
-            "مرحباً بك! أنا رافي، مستشارك التوجيهي الذكي. كيف يمكنني مساعدتك اليوم في مسارك الدراسي؟",
+          reply: translate(getStoredLocale(), "cnt.api.agentDemoReply"),
           role: "rafi",
         }),
-        { auth: false }
+        { auth: true }
       ),
   },
 };

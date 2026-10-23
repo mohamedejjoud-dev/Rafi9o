@@ -6,6 +6,7 @@
 import { RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FoxGuide from "@/components/fox/FoxGuide";
+import { useI18n } from "@/lib/i18n";
 
 export interface ErrorStateProps {
   title?: string;
@@ -18,38 +19,39 @@ export interface ErrorStateProps {
 }
 
 export default function ErrorState({
-  title = "Oups, une erreur est survenue",
+  title,
   description,
   onRetry,
-  retryLabel = "Réessayer",
+  retryLabel,
   onDemoFallback,
-  fallbackLabel = "Continuer en mode démo",
+  fallbackLabel,
   className = "",
 }: ErrorStateProps) {
+  const { t } = useI18n();
   return (
     <div
-      className={`mx-auto max-w-md rounded-2xl border border-red-100 bg-white p-6 shadow-sm ${className}`}
+      className={`mx-auto max-w-md rounded-2xl border border-red-100 bg-card p-6 shadow-sm dark:border-red-900/50 ${className}`}
       role="alert"
     >
       <FoxGuide
         stage="results"
         mood="concerned"
-        message="Aïe… quelque chose s'est mal passé. On peut réessayer ensemble !"
+        message={t("pub.errorState.fox")}
         compact
       />
-      <h3 className="mt-4 text-base font-semibold text-stone-900">{title}</h3>
-      <p className="mt-1 text-sm text-stone-600">{description}</p>
+      <h3 className="mt-4 text-base font-semibold text-foreground">{title ?? t("pub.errorState.title")}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         {onRetry && (
           <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
             <RotateCcw className="h-4 w-4" aria-hidden />
-            {retryLabel}
+            {retryLabel ?? t("pub.common.retry")}
           </Button>
         )}
         {onDemoFallback && (
           <Button size="sm" onClick={onDemoFallback} className="gap-1.5">
             <Sparkles className="h-4 w-4" aria-hidden />
-            {fallbackLabel}
+            {fallbackLabel ?? t("pub.errorState.fallback")}
           </Button>
         )}
       </div>

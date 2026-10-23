@@ -4,11 +4,13 @@
 "use client";
 
 import { useState } from "react";
-import { Bot, Brain, Target, Zap, GraduationCap, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { Bot, Brain, Crown, Lightbulb, Lock, Target, Zap, GraduationCap, MessageCircle } from "lucide-react";
 import PublicNavbar from "@/components/navigation/PublicNavbar";
 import PublicFooter from "@/components/navigation/PublicFooter";
 import RafiAgentChat from "@/components/agent/RafiAgentChat";
 import { useI18n } from "@/lib/i18n";
+import { usePremium } from "@/lib/premium";
 import type { StudentProfile } from "@/lib/rafi-agent";
 import RafiFox from "@/components/mascot/RafiFox";
 import RafiLogo from "@/components/ui/RafiLogo";
@@ -32,6 +34,7 @@ const FEATURES = [
 
 export default function AgentPage() {
   const { t, dir } = useI18n();
+  const { isPremium, loading: premiumLoading } = usePremium();
   const [profile, setProfile] = useState<StudentProfile>({});
   const selectedStream = profile.bacStream;
 
@@ -51,6 +54,28 @@ export default function AgentPage() {
               </p>
             </div>
           </div>
+
+          {!premiumLoading && !isPremium && (
+            <div
+              role="note"
+              className="mx-auto mb-6 flex max-w-3xl flex-col items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 sm:flex-row sm:items-center dark:border-orange-900/50 dark:bg-orange-950/20"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-600 text-white">
+                <Lock className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{t("ai.locked.title")}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{t("ai.locked.banner")}</p>
+              </div>
+              <Link
+                href="/trial"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2"
+              >
+                <Crown className="h-4 w-4" aria-hidden />
+                {t("ai.locked.cta")}
+              </Link>
+            </div>
+          )}
 
           <div className="mb-6 flex flex-wrap gap-2 justify-center">
             <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 self-center me-1">{t("ai.stream")}</span>
@@ -80,8 +105,8 @@ export default function AgentPage() {
                     <span className="absolute bottom-0 end-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900" />
                   </span>
                   <div>
-                    <p className="font-bold text-slate-900 dark:text-white text-sm">Rafi</p>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">{t("ai.online")}</p>
+                    <p className="font-bold text-slate-900 dark:text-white text-sm">{t("pub.mascot.name")}</p>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">{t("ai.online")}</p>
                   </div>
                   {selectedStream && (
                     <span className="ms-auto text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
@@ -96,14 +121,14 @@ export default function AgentPage() {
             <div className="space-y-4">
               <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-5">
                 <h2 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                  <Bot className="h-4 w-4 text-orange-500" />
+                  <Bot className="h-4 w-4 text-orange-500" aria-hidden />
                   {t("ai.canDo")}
                 </h2>
                 <div className="space-y-3">
                   {FEATURES.map(({ icon: Icon, label, desc }) => (
                     <div key={label} className="flex gap-3 items-start">
                       <div className="h-8 w-8 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0 border border-orange-100 dark:border-orange-800">
-                        <Icon className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                        <Icon className="h-4 w-4 text-orange-600 dark:text-orange-400" aria-hidden />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{t(label)}</p>
@@ -115,13 +140,16 @@ export default function AgentPage() {
               </div>
 
               <div className="rounded-3xl border border-orange-200 dark:border-orange-800/50 bg-orange-50 dark:bg-orange-900/10 p-5">
-                <p className="text-sm font-bold text-orange-700 dark:text-orange-400 mb-2">💡 {t("ai.try")}</p>
+                <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-orange-700 dark:text-orange-400">
+                  <Lightbulb className="h-4 w-4" aria-hidden />
+                  {t("ai.try")}
+                </p>
                 <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-                  <li className="flex items-start gap-1.5"><span className="text-orange-400 mt-0.5">→</span> {t("ai.quick.quiz")}</li>
-                  <li className="flex items-start gap-1.5"><span className="text-orange-400 mt-0.5">→</span> {t("ai.quick.analyze")}</li>
-                  <li className="flex items-start gap-1.5"><span className="text-orange-400 mt-0.5">→</span> {t("ai.quick.challenge")}</li>
-                  <li className="flex items-start gap-1.5"><span className="text-orange-400 mt-0.5">→</span> {t("ai.quick.fields")}</li>
-                  <li className="flex items-start gap-1.5"><span className="text-orange-400 mt-0.5">→</span> {t("ai.quick.ask")}</li>
+                  <li className="flex items-start gap-1.5"><span className="mt-0.5 inline-block text-orange-500 rtl:rotate-180" aria-hidden>→</span> {t("ai.quick.quiz")}</li>
+                  <li className="flex items-start gap-1.5"><span className="mt-0.5 inline-block text-orange-500 rtl:rotate-180" aria-hidden>→</span> {t("ai.quick.analyze")}</li>
+                  <li className="flex items-start gap-1.5"><span className="mt-0.5 inline-block text-orange-500 rtl:rotate-180" aria-hidden>→</span> {t("ai.quick.challenge")}</li>
+                  <li className="flex items-start gap-1.5"><span className="mt-0.5 inline-block text-orange-500 rtl:rotate-180" aria-hidden>→</span> {t("ai.quick.fields")}</li>
+                  <li className="flex items-start gap-1.5"><span className="mt-0.5 inline-block text-orange-500 rtl:rotate-180" aria-hidden>→</span> {t("ai.quick.ask")}</li>
                 </ul>
               </div>
             </div>

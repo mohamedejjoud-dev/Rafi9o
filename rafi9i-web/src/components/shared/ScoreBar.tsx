@@ -3,6 +3,8 @@
  */
 "use client";
 
+import { useI18n } from "@/lib/i18n";
+
 export function ScoreBar({
   value,
   label,
@@ -14,22 +16,23 @@ export function ScoreBar({
   highlight?: boolean;
   className?: string;
 }) {
+  const { t } = useI18n();
   const safe = Math.max(0, Math.min(100, Math.round(value)));
   return (
     <div className={className}>
       {label && (
-        <div className="mb-1 flex items-center justify-between text-xs font-medium text-stone-600">
+        <div className="mb-1 flex items-center justify-between text-xs font-medium text-muted-foreground">
           <span>{label}</span>
-          <span className={highlight ? "text-orange-700" : ""}>{safe}%</span>
+          <span className={highlight ? "text-orange-700 dark:text-orange-400" : ""}>{safe}%</span>
         </div>
       )}
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-stone-100"
+        className="h-2 w-full overflow-hidden rounded-full bg-muted"
         role="meter"
         aria-valuenow={safe}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={label ?? "Score de compatibilité"}
+        aria-label={label ?? t("asm.score.aria")}
       >
         <div
           className={`h-full rounded-full transition-all duration-700 ${
@@ -52,7 +55,7 @@ export function ScoreRing({ value, size = 64 }: { value: number; size?: number }
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F5F5F4" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-muted" />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -72,7 +75,7 @@ export function ScoreRing({ value, size = 64 }: { value: number; size?: number }
           </linearGradient>
         </defs>
       </svg>
-      <span className="absolute text-sm font-bold text-stone-900">{safe}%</span>
+      <span className="absolute text-sm font-bold text-foreground">{safe}%</span>
     </div>
   );
 }

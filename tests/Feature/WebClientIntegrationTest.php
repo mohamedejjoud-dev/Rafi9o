@@ -251,35 +251,65 @@ class WebClientIntegrationTest extends TestCase
             ]);
     }
 
-    public function test_trial_endpoints_activate_and_read_status(): void
+    public function test_premium_request_marks_account_pending_without_granting_access(): void
     {
         $freeStudent = User::factory()->student()->free()->create();
         Sanctum::actingAs($freeStudent);
 
-        // 1. Initial trial status
-        $status1 = $this->getJson('/api/v1/trial/status');
-        $status1->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'status' => 'not_started',
-                    'accessLevel' => 'free',
-                ],
-            ]);
+        $this->getJson('/api/v1/trial/status')
+            ->assertOk()
+            ->assertJson(['data' => ['status' => 'not_started', 'accessLevel' => 'free']]);
 
-        // 2. Start trial
-        $start = $this->postJson('/api/v1/trial/start');
-        $start->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'status' => 'active',
-                    'accessLevel' => 'premium',
-                ],
-            ]);
+        $this->postJson('/api/v1/premium/request')
+            ->assertOk()
+            ->assertJson(['data' => ['status' => 'pending', 'accessLevel' => 'free']]);
 
         $freeStudent->refresh();
-        $this->assertTrue($freeStudent->isPremium());
+        $this->assertFalse($freeStudent->isPremium());
+        $this->assertNotNull($freeStudent->premium_requested_at);
+
+        // Self-service trial activation no longer exists
+        $this->postJson('/api/v1/trial/start')->assertNotFound();
+    }
+
+    public function test_repeated_premium_request_keeps_original_request_time(): void
+    {
+        $freeStudent = User::factory()->student()->free()->create();
+        Sanctum::actingAs($freeStudent);
+
+        $this->travelTo(now()->subHour());
+        $this->postJson('/api/v1/premium/request')->assertOk();
+        $firstRequestedAt = $freeStudent->fresh()->premium_requested_at;
+        $this->travelBack();
+
+        $this->postJson('/api/v1/premium/request')->assertOk();
+
+        $this->assertTrue($firstRequestedAt->equalTo($freeStudent->fresh()->premium_requested_at));
+    }
+
+    public function test_premium_request_from_premium_user_keeps_subscription_active(): void
+    {
+        $premiumStudent = User::factory()->student()->premium()->create();
+        Sanctum::actingAs($premiumStudent);
+
+        $this->postJson('/api/v1/premium/request')
+            ->assertOk()
+            ->assertJson(['data' => ['status' => 'subscribed', 'accessLevel' => 'premium']]);
+
+        $this->assertSame('premium', $premiumStudent->fresh()->subscription_status);
+    }
+
+    public function test_free_user_cannot_start_or_submit_advanced_assessment(): void
+    {
+        Sanctum::actingAs(User::factory()->student()->free()->create());
+
+        $this->postJson('/api/v1/assessments/advanced/start')
+            ->assertForbidden()
+            ->assertJson(['code' => 'premium_required']);
+
+        $this->postJson('/api/v1/assessments/advanced/submit', ['sessionId' => 'sess-x', 'answers' => ['q1' => 'a']])
+            ->assertForbidden()
+            ->assertJson(['code' => 'premium_required']);
     }
 
     public function test_dashboard_endpoint_returns_full_overview(): void

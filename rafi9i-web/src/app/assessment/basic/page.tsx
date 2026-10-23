@@ -14,40 +14,56 @@ import FoxGuide from "@/components/fox/FoxGuide";
 import { api, demoBackend } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth-client";
 import { useAssessmentStore } from "@/lib/assessment-store";
+import { useI18n } from "@/lib/i18n";
+import { clearCachedOverview, readCachedOverview, writeCachedOverview } from "@/lib/assessment-cache";
 import { basicSchema, type AssessmentOverview } from "@/lib/types";
+
+/** Sentinel for failures without a server message; rendered as a translated fallback. */
+const LOAD_FAILED = "__load_failed__";
 
 export default function BasicAssessmentPage() {
   const { session, loading } = useRequireAuth();
+  const { t, locale } = useI18n();
   const [overview, setOverview] = useState<AssessmentOverview | null>(null);
   const [error, setError] = useState<string>("");
   const [fetching, setFetching] = useState(true);
 
-  const load = () => {
+  const load = (useCache = true) => {
+    const cached = useCache ? readCachedOverview("basic", locale) : null;
+    if (cached) {
+      setOverview(cached);
+      setError("");
+      setFetching(false);
+      return;
+    }
     setFetching(true);
     setError("");
     api.assessments
       .startBasic()
-      .then(setOverview)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Chargement impossible."))
+      .then((o) => {
+        writeCachedOverview("basic", locale, o);
+        setOverview(o);
+      })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : LOAD_FAILED))
       .finally(() => setFetching(false));
   };
 
   useEffect(() => {
     if (session) load();
-  }, [session]);
+  }, [session, locale]);
 
-  if (loading || !session) return <PageLoader message="Chargement de ton espace…" />;
+  if (loading || !session) return <PageLoader message={t("asm.loadingSpace")} />;
 
   return (
-    <main className="min-h-screen bg-orange-50/40 px-4 py-8">
+    <main className="min-h-screen bg-orange-50/40 px-4 dark:bg-background py-8">
       <div className="mx-auto max-w-3xl">
-        {fetching && <PageLoader message="Préparation de ton évaluation…" />}
+        {fetching && <PageLoader message={t("asm.basic.preparing")} />}
 
         {!fetching && error && (
           <ErrorState
-            title="Évaluation indisponible"
-            description={error}
-            onRetry={load}
+            title={t("asm.basic.unavailable")}
+            description={error === LOAD_FAILED ? t("asm.loadError") : error}
+            onRetry={() => load(false)}
             onDemoFallback={() => {
               setOverview(demoBackend.startBasic());
               setError("");
@@ -60,18 +76,18 @@ export default function BasicAssessmentPage() {
             <FoxGuide
               stage="assessment"
               mood="celebrating"
-              message="Tu as déjà terminé cette évaluation, bravo ! Tu peux consulter ton résultat ou la refaire."
+              message={t("asm.basic.done")}
             />
             <div className="mt-6 flex flex-col gap-2 sm:flex-row">
               <Button asChild className="flex-1 gap-2">
                 <Link href="/results/free">
                   <Eye className="h-4 w-4" aria-hidden />
-                  Voir mon résultat gratuit
+                  {t("asm.basic.viewResult")}
                 </Link>
               </Button>
               <Button variant="outline" className="flex-1 gap-2" onClick={() => setOverview({ ...overview, completed: false })}>
                 <RefreshCcw className="h-4 w-4" aria-hidden />
-                Refaire l&apos;évaluation
+                {t("asm.redo")}
               </Button>
             </div>
           </div>
@@ -80,15 +96,18 @@ export default function BasicAssessmentPage() {
         {!fetching && !error && overview && !overview.completed && (
           <AssessmentFlow
             variant="basic"
-            title="Ton évaluation d'orientation"
-            introMessage="C'est parti pour ta première évaluation ! Douze questions pour comprendre qui tu es académiquement."
-            loadingMessage="Cela prend généralement moins de 20 secondes."
+            title={t("asm.basic.title")}
+            introMessage={t("asm.basic.intro")}
+            loadingMessage={t("asm.basic.loading")}
             questions={overview.questions}
             schema={basicSchema}
             submit={(answers) => api.assessments.submitBasic(answers)}
             demoSubmit={(answers) => demoBackend.submitBasic(answers)}
             successRoute="/results/free"
-            onSubmitted={() => useAssessmentStore.getState().resetBasic()}
+            onSubmitted={() => {
+              useAssessmentStore.getState().resetBasic();
+              clearCachedOverview("basic");
+            }}
           />
         )}
       </div>

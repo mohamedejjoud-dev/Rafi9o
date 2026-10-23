@@ -15,6 +15,7 @@
 
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const MASCOT_SRC = "/images/rafi9i-mark.png";
 
@@ -53,17 +54,20 @@ export default function RafiFox({
   className = "",
   decorative = false,
 }: RafiFoxProps) {
+  const { t } = useI18n();
   const thinking = mood === "thinking" || stage === "thinking";
   const celebrating = mood === "celebrating" || stage === "achievement" || stage === "result";
   const concerned = mood === "concerned";
 
-  const altText = thinking
-    ? "Rafi réfléchit"
-    : celebrating
-      ? "Rafi célèbre ta réussite"
-      : concerned
-        ? "Rafi est inquiet"
-        : "Rafi, ton guide d'orientation";
+  const altText = t(
+    thinking
+      ? "pub.mascot.alt.thinking"
+      : celebrating
+        ? "pub.mascot.alt.celebrating"
+        : concerned
+          ? "pub.mascot.alt.concerned"
+          : "pub.mascot.alt.default"
+  );
 
   const motion = celebrating ? "rf-bounce" : concerned ? "" : "rf-float";
   const pose = thinking ? "-rotate-[8deg]" : concerned ? "rotate-[6deg] translate-y-[4%]" : "";
@@ -90,7 +94,7 @@ export default function RafiFox({
             sizes={`${size}px`}
             className="object-contain"
             style={{ filter: "drop-shadow(0 6px 8px rgba(20,18,16,0.28)) drop-shadow(0 2px 2px rgba(20,18,16,0.2))" }}
-            priority={size > 150}
+            fetchPriority={size > 150 ? "high" : undefined}
           />
           {/* Gloss + shading, clipped to the fox silhouette */}
           <span

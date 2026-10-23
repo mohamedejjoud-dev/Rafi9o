@@ -20,7 +20,7 @@ export default function PricingPreview() {
         <div className="mx-auto mt-12 grid max-w-4xl items-stretch gap-8 md:grid-cols-2">
           <PricingCard
             name={t("pricing.home.free.name")}
-            price="0 DH"
+            price={t("pub.price.free")}
             pricePeriod={t("pricing.freePeriod")}
             description={t("pricing.home.free.description")}
             features={[
@@ -32,7 +32,7 @@ export default function PricingPreview() {
           />
           <PricingCard
             name={t("pricing.home.premium.name")}
-            price="19 DH"
+            price={t("premium.price")}
             pricePeriod={t("pricing.month")}
             recommendationLabel={t("pricing.recommended")}
             description={t("pricing.home.premium.description")}

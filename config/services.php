@@ -42,6 +42,13 @@ return [
         'timeout' => (int) env('OPENROUTER_TIMEOUT', 30),
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+        'workspace_id' => env('ANTHROPIC_WORKSPACE_ID'),
+        'timeout' => (int) env('ANTHROPIC_TIMEOUT', 60),
+    ],
+
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
         'model' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),

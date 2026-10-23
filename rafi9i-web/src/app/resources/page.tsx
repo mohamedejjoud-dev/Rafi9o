@@ -4,7 +4,6 @@
  */
 import type { Metadata } from "next";
 import PublicShell from "@/components/navigation/PublicShell";
-import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import PageContainer from "@/components/shared/PageContainer";
 import ResourcesPageContent from "@/components/marketing/ResourcesPageContent";
 import { buildMetadata } from "@/lib/metadata";
@@ -20,12 +19,6 @@ export default function ResourcesPage() {
   return (
     <PublicShell>
       <PageContainer className="pt-8">
-        <Breadcrumbs
-          items={[
-            { name: "Accueil", path: "/" },
-            { name: "Ressources", path: "/resources" },
-          ]}
-        />
         <ResourcesPageContent />
       </PageContainer>
     </PublicShell>

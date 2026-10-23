@@ -3,7 +3,9 @@
  */
 "use client";
 
+import { BookMarked, BookOpen, Headphones, type LucideIcon } from "lucide-react";
 import ResourceCard from "@/components/resources/ResourceCard";
+import { useI18n } from "@/lib/i18n";
 import type { LearningResource } from "@/lib/types";
 
 export interface ResourceListProps {
@@ -13,13 +15,14 @@ export interface ResourceListProps {
   onToggleSaved: (id: string) => void;
 }
 
-const GROUPS: { type: LearningResource["type"]; label: string; emoji: string; description: string }[] = [
-  { type: "course", label: "Cours en ligne", emoji: "📚", description: "Pour construire des bases solides à ton rythme." },
-  { type: "podcast", label: "Podcasts", emoji: "🎧", description: "À écouter dans les transports ou en marchant." },
-  { type: "ebook", label: "E-books & guides", emoji: "📖", description: "Pour approfondir et garder des repères écrits." },
+const GROUPS: { type: LearningResource["type"]; icon: LucideIcon }[] = [
+  { type: "course", icon: BookOpen },
+  { type: "podcast", icon: Headphones },
+  { type: "ebook", icon: BookMarked },
 ];
 
 export default function ResourceList({ resources, savedIds, onToggleCompleted, onToggleSaved }: ResourceListProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
       {GROUPS.map((group) => {
@@ -30,12 +33,13 @@ export default function ResourceList({ resources, savedIds, onToggleCompleted, o
           <section key={group.type} aria-labelledby={`res-${group.type}`}>
             <div className="mb-2.5 flex items-baseline justify-between">
               <div>
-                <h3 id={`res-${group.type}`} className="text-sm font-bold text-stone-900">
-                  {group.emoji} {group.label}
+                <h3 id={`res-${group.type}`} className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+                  <group.icon className="h-4 w-4 shrink-0 text-orange-600 dark:text-orange-400" aria-hidden />
+                  {t(`dsh.res.group.${group.type}`)}
                 </h3>
-                <p className="text-xs text-stone-500">{group.description}</p>
+                <p className="text-xs text-muted-foreground">{t(`dsh.res.group.${group.type}.desc`)}</p>
               </div>
-              <span className="text-xs font-semibold text-stone-500">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {done}/{items.length}
               </span>
             </div>

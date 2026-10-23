@@ -28,6 +28,7 @@ class UserResource extends JsonResource
             'createdAt' => $this->created_at?->toISOString(),
             'subscription_status' => $this->subscription_status ?? 'free',
             'is_premium' => $this->isPremium(),
+            'premium_requested_at' => $this->premium_requested_at?->toISOString(),
             'premium_activated_at' => $this->premium_activated_at?->toISOString(),
             'premium_expires_at' => $this->premium_expires_at?->toISOString(),
             'email_verified_at' => $this->email_verified_at?->toISOString(),

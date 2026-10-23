@@ -76,7 +76,7 @@ $registerAssessmentRoutes = function () {
 
         // AI-powered insights enrichment (Rate-limited: 10/min)
         Route::post('/results/{result}/ai-insights', [AssessmentController::class, 'refreshAiInsights'])
-            ->middleware('throttle:ai');
+            ->middleware(['premium', 'throttle:ai']);
     });
 };
 
@@ -126,14 +126,14 @@ $registerWebClientRoutes = function () {
         // Basic & Advanced Moroccan Assessments
         Route::post('/assessments/basic/start', [WebClientController::class, 'startBasic']);
         Route::post('/assessments/basic/submit', [WebClientController::class, 'submitBasic']);
-        Route::post('/assessments/advanced/start', [WebClientController::class, 'startAdvanced']);
-        Route::post('/assessments/advanced/submit', [WebClientController::class, 'submitAdvanced']);
+        Route::post('/assessments/advanced/start', [WebClientController::class, 'startAdvanced'])->middleware('premium');
+        Route::post('/assessments/advanced/submit', [WebClientController::class, 'submitAdvanced'])->middleware('premium');
 
         // Results
         Route::get('/results/latest', [WebClientController::class, 'latestResult']);
 
-        // Trial & Subscriptions
-        Route::post('/trial/start', [WebClientController::class, 'startTrial']);
+        // Subscriptions (Premium is paid via WhatsApp transfer and verified by an admin)
+        Route::post('/premium/request', [WebClientController::class, 'requestPremium']);
         Route::get('/trial/status', [WebClientController::class, 'getTrialStatus']);
 
         // Dashboard
@@ -148,6 +148,8 @@ $registerWebClientRoutes = function () {
 Route::prefix('v1')->group($registerWebClientRoutes);
 Route::group([], $registerWebClientRoutes);
 
-// Rafi AI Agent Chat Routes (Public & authenticated)
-Route::post('/v1/agent/chat', [AgentChatController::class, 'chat'])->middleware('throttle:ai');
-Route::post('/agent/chat', [AgentChatController::class, 'chat'])->middleware('throttle:ai');
+// Rafi AI Agent Chat Routes (Premium only)
+Route::middleware(['auth:sanctum', 'premium', 'throttle:ai'])->group(function () {
+    Route::post('/v1/agent/chat', [AgentChatController::class, 'chat']);
+    Route::post('/agent/chat', [AgentChatController::class, 'chat']);
+});

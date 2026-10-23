@@ -11,11 +11,21 @@
  */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
+import { ArrowLeft, ArrowRight, ClipboardList, RotateCcw } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import FoxGuide from "@/components/fox/FoxGuide";
 import QuestionCard from "@/components/assessment/QuestionCard";
@@ -23,6 +33,7 @@ import ReviewSummary from "@/components/assessment/ReviewSummary";
 import ErrorState from "@/components/shared/ErrorState";
 import PageLoader from "@/components/shared/PageLoader";
 import DemoBadge from "@/components/shared/DemoBadge";
+import BackButton from "@/components/shared/BackButton";
 import { useAssessmentStore } from "@/lib/assessment-store";
 import type { AssessmentQuestion } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
@@ -34,6 +45,13 @@ interface ZodLike {
     v: unknown
   ) => { success: boolean; error?: { issues: { path: PropertyKey[]; message: string }[] } };
 }
+
+/** Question slide: enters from the reading direction, leaves the other way. */
+const QUESTION_SLIDE = {
+  enter: (dir: number) => ({ opacity: 0, x: 28 * dir }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir: number) => ({ opacity: 0, x: -28 * dir }),
+};
 
 export interface AssessmentFlowProps {
   variant: "basic" | "advanced";
@@ -88,8 +106,12 @@ export default function AssessmentFlow({
   onSubmitted,
 }: AssessmentFlowProps) {
   const router = useRouter();
-  const store = useAssessmentStore();
-  const { locale, dir } = useI18n();
+  // Select only what this component needs so unrelated store updates
+  // (favorites, challenges) don't re-render the whole quiz.
+  const setDraftAnswer = useAssessmentStore((s) => (variant === "basic" ? s.setBasicAnswer : s.setAdvancedAnswer));
+  const resetDraft = useAssessmentStore((s) => (variant === "basic" ? s.resetBasic : s.resetAdvanced));
+  const setProgress = useAssessmentStore((s) => s.setProgress);
+  const { t, locale, dir } = useI18n();
 
   const [hydrated, setHydrated] = useState(false);
   const [phase, setPhase] = useState<FlowPhase>("intro");
@@ -97,37 +119,74 @@ export default function AssessmentFlow({
   const [stepError, setStepError] = useState<string | undefined>(undefined);
   const [submitError, setSubmitError] = useState<string>("");
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [resumed, setResumed] = useState(false);
+  const [confirmRestart, setConfirmRestart] = useState(false);
 
   const form = useForm<Record<string, unknown>>({ defaultValues: {} });
-  const setDraftAnswer = variant === "basic" ? store.setBasicAnswer : store.setAdvancedAnswer;
-
-  /* Hydrate draft answers once on mount (client-only storage). */
+  /* Hydrate draft answers and the saved position once on mount (client-only
+     storage), so a refresh resumes at the same question. */
   useEffect(() => {
-    form.reset({ ...(variant === "basic" ? store.basic : store.advanced) });
+    const state = useAssessmentStore.getState();
+    const answers = variant === "basic" ? state.basic : state.advanced;
+    form.reset({ ...answers });
+    const saved = state.progress[variant];
+    if (saved && Object.keys(answers).length > 0 && questions.length > 0) {
+      setStep(Math.min(Math.max(saved.step, 0), questions.length - 1));
+      setPhase(saved.phase);
+      setResumed(true);
+    }
     setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [variant]);
+
+  /* Remember the position while answering. */
+  useEffect(() => {
+    if (!hydrated) return;
+    if (phase === "questions" || phase === "review") setProgress(variant, { step, phase });
+  }, [hydrated, phase, step, variant, setProgress]);
 
   const submitMessages = SUBMIT_MESSAGES_MAP[locale] || SUBMIT_MESSAGES_MAP.fr;
 
   /* Rotate loading messages during result generation. */
   useEffect(() => {
     if (phase !== "submitting") return;
-    const t = setInterval(() => setLoadingMsgIndex((i) => (i + 1) % submitMessages.length), 1400);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setLoadingMsgIndex((i) => (i + 1) % submitMessages.length), 1400);
+    return () => clearInterval(timer);
   }, [phase, submitMessages.length]);
 
   const total = questions.length;
   const currentQuestion: AssessmentQuestion | undefined = questions[step];
   const progress = Math.round((step / Math.max(1, total)) * 100);
 
+  /* Single-choice and scale answers advance on their own after a short pause
+     so the student sees the selection; multi-select questions keep "Next". */
+  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelAutoAdvance = useCallback(() => {
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+    autoAdvanceTimer.current = null;
+  }, []);
+  useEffect(() => cancelAutoAdvance, [cancelAutoAdvance]);
+
   const handleChange = useCallback(
     (question: AssessmentQuestion, value: unknown) => {
       form.setValue(question.id, value);
       setDraftAnswer(question.id as never, value);
       setStepError(undefined);
+
+      if (question.type === "multi" || value === undefined || value === "") return;
+      const answeredIndex = questions.findIndex((q) => q.id === question.id);
+      cancelAutoAdvance();
+      autoAdvanceTimer.current = setTimeout(() => {
+        autoAdvanceTimer.current = null;
+        setDirection(1);
+        if (answeredIndex >= questions.length - 1) {
+          setPhase("review");
+        } else {
+          setStep(answeredIndex + 1);
+        }
+      }, 350);
     },
-    [form, setDraftAnswer]
+    [form, setDraftAnswer, questions, cancelAutoAdvance]
   );
 
   const validateCurrent = useCallback((): boolean => {
@@ -161,20 +220,39 @@ export default function AssessmentFlow({
   }, [currentQuestion, form, locale]);
 
   const goNext = useCallback(() => {
+    cancelAutoAdvance();
     if (!validateCurrent()) return;
     setStepError(undefined);
+    setDirection(1);
     if (step < total - 1) {
       setStep(step + 1);
     } else {
       setPhase("review");
     }
-  }, [step, total, validateCurrent]);
+  }, [step, total, validateCurrent, cancelAutoAdvance]);
 
   const goBack = useCallback(() => {
+    cancelAutoAdvance();
     setStepError(undefined);
+    setDirection(-1);
+    setResumed(false);
     if (step > 0) setStep(step - 1);
     else setPhase("intro");
-  }, [step]);
+  }, [step, cancelAutoAdvance]);
+
+  /* "Restart quiz": clear answers and the saved position. Questions are not
+     re-fetched: they are a fixed catalog already loaded for this session. */
+  const restart = useCallback(() => {
+    cancelAutoAdvance();
+    resetDraft();
+    form.reset({});
+    setStep(0);
+    setDirection(1);
+    setStepError(undefined);
+    setResumed(false);
+    setConfirmRestart(false);
+    setPhase("intro");
+  }, [cancelAutoAdvance, resetDraft, form]);
 
   const doSubmit = useCallback(
     async (values: Record<string, unknown>) => {
@@ -266,12 +344,12 @@ export default function AssessmentFlow({
       locale === "ar" ? "ابدأ الآن" : locale === "ary" ? "بدا دابا" : locale === "en" ? "Start" : "Commencer";
     const introDesc =
       locale === "ar"
-        ? `${total} أسئلة · حوالي 6 دقائق · تُحفظ إجاباتك تلقائياً. يمكنك مراجعة الملخص قبل تأكيد النتائج.`
+        ? `${total} أسئلة · حوالي 10 دقائق · تُحفظ إجاباتك تلقائياً. يمكنك مراجعة الملخص قبل تأكيد النتائج.`
         : locale === "ary"
-          ? `${total} أسئلة · تقريباً 6 دقايق · الإجابات ديالك كيتسجلو تلقائياً. تقدر تشوف الملخص قبل ما تأكد النتيجة.`
+          ? `${total} أسئلة · تقريباً 10 دقايق · الإجابات ديالك كيتسجلو تلقائياً. تقدر تشوف الملخص قبل ما تأكد النتيجة.`
           : locale === "en"
-            ? `${total} questions · approx. 6 minutes · answers saved automatically. You can review your summary before finalizing.`
-            : `${total} questions · environ 6 minutes · tes réponses sont sauvegardées automatiquement. Tu pourras vérifier un récapitulatif avant de générer ton résultat.`;
+            ? `${total} questions · approx. 10 minutes · answers saved automatically. You can review your summary before finalizing.`
+            : `${total} questions · environ 10 minutes · tes réponses sont sauvegardées automatiquement. Tu pourras vérifier un récapitulatif avant de générer ton résultat.`;
 
     const point1 =
       locale === "ar"
@@ -323,13 +401,12 @@ export default function AssessmentFlow({
               {point3}
             </li>
           </ul>
-          <Button
-            size="lg"
-            onClick={() => setPhase("questions")}
-            className="mt-6 w-full gap-2 sm:w-auto"
-          >
-            {startText} <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
-          </Button>
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row">
+            <BackButton size="lg" />
+            <Button size="lg" onClick={() => setPhase("questions")} className="w-full gap-2 sm:w-auto">
+              {startText} <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -343,6 +420,10 @@ export default function AssessmentFlow({
         values={form.getValues()}
         onEdit={(index) => {
           setStep(index);
+          setPhase("questions");
+        }}
+        onBack={() => {
+          setStep(total - 1);
           setPhase("questions");
         }}
         onConfirm={confirmSubmit}
@@ -440,12 +521,23 @@ export default function AssessmentFlow({
 
   return (
     <div className="mx-auto w-full max-w-2xl" dir={dir}>
-      <div className="flex items-center justify-between">
-        <DemoBadge />
-        <span className="text-xs font-semibold text-stone-500 dark:text-stone-400" aria-live="polite">
-          {questionNumLabel}
-        </span>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <DemoBadge />
+          <span className="text-xs font-semibold text-stone-500 dark:text-stone-400" aria-live="polite">
+            {questionNumLabel}
+          </span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setConfirmRestart(true)} className="gap-1.5 text-xs">
+          <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+          {t("asm.restart")}
+        </Button>
       </div>
+      {resumed && (
+        <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-400" role="status">
+          {t("asm.resumed")}
+        </p>
+      )}
 
       {/* Progress indicator */}
       <div
@@ -454,11 +546,13 @@ export default function AssessmentFlow({
         aria-valuenow={Math.round(((step + 1) / total) * 100)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Progress"
+        aria-label={t("asm.progressLabel")}
       >
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-600 transition-all duration-500"
-          style={{ width: `${((step + 1) / total) * 100}%` }}
+        <motion.div
+          className="h-full origin-left rounded-full bg-gradient-to-r from-amber-400 to-orange-600 rtl:origin-right"
+          initial={false}
+          animate={{ scaleX: (step + 1) / Math.max(1, total) }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>
 
@@ -472,8 +566,17 @@ export default function AssessmentFlow({
         />
       </div>
 
+      <AnimatePresence mode="wait" initial={false} custom={direction * (dir === "rtl" ? -1 : 1)}>
       {currentQuestion && (
-        <div className="mt-6 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-sm sm:p-7">
+        <motion.div
+          key={currentQuestion.id}
+          custom={direction * (dir === "rtl" ? -1 : 1)}
+          variants={QUESTION_SLIDE}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-6 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-sm sm:p-7">
           <h1
             id={`q-${currentQuestion.id}`}
             className="text-lg font-bold leading-snug text-stone-900 dark:text-stone-100 sm:text-xl"
@@ -491,12 +594,13 @@ export default function AssessmentFlow({
               onChange={(v) => handleChange(currentQuestion, v)}
             />
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Navigation */}
       <div className="sticky bottom-4 mt-5 flex items-center justify-between gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white/90 dark:bg-stone-900/90 p-3 shadow-lg backdrop-blur">
-        <Button variant="ghost" onClick={goBack} className="gap-1.5">
+        <Button variant="outline" onClick={goBack} className="gap-1.5">
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />
           {backLabel}
         </Button>
@@ -517,6 +621,19 @@ export default function AssessmentFlow({
           )}
         </Button>
       </div>
+
+      <AlertDialog open={confirmRestart} onOpenChange={setConfirmRestart}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("asm.restart.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("asm.restart.text")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("asm.restart.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={restart}>{t("asm.restart.ok")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

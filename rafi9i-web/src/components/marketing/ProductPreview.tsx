@@ -92,7 +92,7 @@ export default function ProductPreview() {
                 {schools.map((school, index) => (
                   <div
                     key={school.name}
-                    className={`rounded-2xl border p-5 ${
+                    className={`rafi-card-hover rounded-2xl border p-5 ${
                       index === 0 ? "border-orange-300 bg-orange-50/60 dark:border-orange-800 dark:bg-orange-950/30" : "border-slate-200 dark:border-slate-800"
                     }`}
                   >
@@ -114,7 +114,7 @@ export default function ProductPreview() {
             {activeTab === "skills" && (
               <div className="grid gap-5 md:grid-cols-3">
                 {skills.map((skill) => (
-                  <div key={skill.name} className="rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+                  <div key={skill.name} className="rafi-card-hover rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
                     <div className="flex items-center justify-between">
                       <skill.icon className="h-5 w-5 text-orange-500" aria-hidden />
                       <span className="text-lg font-extrabold text-slate-950 dark:text-white">{skill.rate}%</span>

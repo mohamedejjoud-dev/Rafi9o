@@ -14,10 +14,10 @@ const SIZES: Record<Size, string> = {
 };
 
 const BASE =
-  "inline-flex select-none items-center justify-center rounded-xl font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:pointer-events-none disabled:opacity-50 cursor-pointer";
+  "inline-flex select-none items-center justify-center whitespace-nowrap rounded-xl font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:pointer-events-none disabled:opacity-50 cursor-pointer";
 
 const PRIMARY =
-  "bg-orange-500 text-white font-bold shadow-sm shadow-orange-500/30 hover:bg-orange-600 hover:shadow-md hover:shadow-orange-500/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] border border-orange-500";
+  "bg-orange-600 text-white font-bold shadow-sm shadow-orange-600/25 hover:bg-orange-700 hover:shadow-md hover:shadow-orange-600/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] border border-orange-600";
 
 const SECONDARY =
   "border border-slate-300 bg-white text-slate-800 hover:text-slate-950 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:text-white shadow-xs hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]";

@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use Anthropic\Client as AnthropicClient;
+use Anthropic\Core\Exceptions\APIConnectionException;
+use Anthropic\Core\Exceptions\APIStatusException;
 use App\Models\CareerPath;
 use App\Models\User;
 use Illuminate\Http\Client\ConnectionException;
@@ -27,16 +30,30 @@ class OpenRouterService
     }
 
     /**
-     * Determine if OpenRouter or Gemini credentials are configured.
+     * Determine if Anthropic, OpenRouter or Gemini credentials are configured.
      */
     public function isConfigured(): bool
     {
+        if ($this->isAnthropicConfigured()) {
+            return true;
+        }
+
         $geminiKey = config('services.gemini.api_key');
         if (! empty($geminiKey) && trim($geminiKey) !== '') {
             return true;
         }
 
         return ! empty($this->apiKey) && trim($this->apiKey) !== '';
+    }
+
+    /**
+     * Determine whether an Anthropic Claude API key is configured.
+     */
+    protected function isAnthropicConfigured(): bool
+    {
+        $anthropicKey = config('services.anthropic.api_key');
+
+        return ! empty($anthropicKey) && trim($anthropicKey) !== '';
     }
 
     /**
@@ -58,7 +75,7 @@ class OpenRouterService
     }
 
     /**
-     * Send a chat completion request to Gemini or OpenRouter.
+     * Send a chat completion request to Claude, Gemini or OpenRouter.
      *
      * @param  list<array{role: string, content: string}>  $messages
      * @param  array<string, mixed>  $options
@@ -71,6 +88,10 @@ class OpenRouterService
             return null;
         }
 
+        if ($this->isAnthropicConfigured()) {
+            return $this->callClaudeApi($messages, $options);
+        }
+
         if ($this->isGeminiKey()) {
             return $this->callGeminiApi($messages, $options);
         }
@@ -79,7 +100,7 @@ class OpenRouterService
             'model' => $options['model'] ?? $this->model,
             'messages' => $messages,
             'temperature' => $options['temperature'] ?? 0.7,
-        ], array_diff_key($options, ['model' => true, 'temperature' => true]));
+        ], array_diff_key($options, ['model' => true, 'temperature' => true, 'effort' => true, 'maxTokens' => true]));
 
         try {
             $response = Http::withHeaders([
@@ -110,6 +131,95 @@ class OpenRouterService
             return null;
         } catch (\Throwable $e) {
             Log::error('OpenRouter unexpected error occurred.', [
+                'exception' => get_class($e),
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Send a completion request to the Anthropic Claude Messages API.
+     *
+     * System messages are merged into the top-level system prompt, and any leading
+     * assistant turns are dropped because Claude conversations must start with a user turn.
+     *
+     * @param  list<array{role: string, content: string}>  $messages
+     * @param  array{effort?: string, maxTokens?: int}  $options
+     */
+    protected function callClaudeApi(array $messages, array $options = []): ?string
+    {
+        $systemParts = [];
+        $conversation = [];
+
+        foreach ($messages as $msg) {
+            $role = $msg['role'] ?? 'user';
+            $content = (string) ($msg['content'] ?? '');
+
+            if ($role === 'system') {
+                $systemParts[] = $content;
+
+                continue;
+            }
+
+            if ($conversation === [] && $role !== 'user') {
+                continue;
+            }
+
+            $conversation[] = [
+                'role' => $role === 'assistant' ? 'assistant' : 'user',
+                'content' => $content,
+            ];
+        }
+
+        if ($conversation === []) {
+            $conversation[] = ['role' => 'user', 'content' => 'Hello'];
+        }
+
+        try {
+            $message = app(AnthropicClient::class)->beta->messages->create(
+                maxTokens: $options['maxTokens'] ?? 16000,
+                messages: $conversation,
+                model: config('services.anthropic.model', 'claude-opus-5-5'),
+                system: $systemParts !== [] ? implode("\n\n", $systemParts) : null,
+                outputConfig: ['effort' => $options['effort'] ?? 'medium'],
+                fallbacks: 'default',
+                betas: ['server-side-fallback-2026-07-01'],
+                workspaceID: config('services.anthropic.workspace_id') ?: null,
+            );
+
+            if ($message->stopReason === 'refusal') {
+                Log::warning('Claude API declined the request.', [
+                    'category' => $message->stopDetails?->category,
+                ]);
+
+                return null;
+            }
+
+            $text = '';
+            foreach ($message->content as $block) {
+                if ($block->type === 'text') {
+                    $text .= $block->text;
+                }
+            }
+
+            return $text !== '' ? $text : null;
+        } catch (APIStatusException $e) {
+            Log::warning('Claude API request failed with status: '.$e->status, [
+                'status' => $e->status,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        } catch (APIConnectionException $e) {
+            Log::warning('Claude API connection failed.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        } catch (\Throwable $e) {
+            Log::error('Claude API unexpected error occurred.', [
                 'exception' => get_class($e),
                 'error' => $e->getMessage(),
             ]);
@@ -295,6 +405,8 @@ PROMPT;
         $reply = $this->chatCompletion($messages, [
             'temperature' => 0.7,
             'maxOutputTokens' => 600,
+            'effort' => 'low',
+            'maxTokens' => 4000,
         ]);
 
         return $reply ?: "Salam ! Marhba bik m3a Rafi 🦊 Je suis là pour t'accompagner dans toute ton orientation. Pose-moi ta question en français ou en darija !";
@@ -337,6 +449,8 @@ JSON Structure:
   "recommendations": ["Three actionable next steps: courses, project ideas, portfolio advice"]
 }
 PROMPT;
+
+        $systemPrompt .= "\n".$this->outputLanguageInstruction();
 
         $userPrompt = json_encode([
             'student_profile' => $userContext,
@@ -418,6 +532,8 @@ JSON Structure:
 }
 PROMPT;
 
+        $systemPrompt .= "\n".$this->outputLanguageInstruction();
+
         $userPrompt = json_encode([
             'user' => [
                 'name' => $user->name,
@@ -448,6 +564,22 @@ PROMPT;
         }
 
         return $parsed;
+    }
+
+    /**
+     * Build the instruction telling the model which language to write text values in,
+     * based on the current application locale.
+     */
+    protected function outputLanguageInstruction(): string
+    {
+        $language = match (app()->getLocale()) {
+            'en' => 'English',
+            'ar' => 'Modern Standard Arabic',
+            'ary' => 'Moroccan Darija written in Arabic script',
+            default => 'French',
+        };
+
+        return "LANGUAGE: Write every human-readable text value in {$language}. Keep all JSON keys exactly as specified in English, keep URLs unchanged, and keep acronyms and school names (CPGE, ENSA, ENCG, UM6P, etc.) in Latin script.";
     }
 
     /**

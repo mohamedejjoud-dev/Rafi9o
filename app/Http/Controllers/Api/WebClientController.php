@@ -36,7 +36,7 @@ class WebClientController extends BaseApiController
             'name' => ['sometimes', 'string', 'max:255'],
             'city' => ['sometimes', 'nullable', 'string', 'max:150'],
             'bacStream' => ['sometimes', 'nullable', 'string', 'max:150'],
-            'language' => ['sometimes', 'nullable', 'string', 'in:fr,ar,en'],
+            'language' => ['sometimes', 'nullable', 'string', 'in:fr,ar,ary,en'],
             'onboardingCompleted' => ['sometimes', 'boolean'],
         ]);
 
@@ -229,22 +229,31 @@ class WebClientController extends BaseApiController
     }
 
     /**
-     * Start a 3-day premium preview trial.
+     * Record that the user sent their Premium payment proof on WhatsApp.
+     * The account stays on the free plan until an administrator verifies the transfer.
      */
-    public function startTrial(Request $request): JsonResponse
+    public function requestPremium(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        $user->forceFill([
-            'subscription_status' => 'premium',
-            'premium_activated_at' => now(),
-            'premium_expires_at' => now()->addDays(3),
-            'subscription_notes' => '3-day premium preview trial',
-        ])->save();
+        if ($user->isPremium()) {
+            return $this->success(
+                $this->orientationService->getTrialStatus($user),
+                __('subscription.already_active')
+            );
+        }
+
+        if (! $user->hasPendingPremiumRequest()) {
+            $user->forceFill([
+                'subscription_status' => 'pending',
+                'premium_requested_at' => now(),
+                'subscription_notes' => 'Awaiting WhatsApp transfer verification',
+            ])->save();
+        }
 
         return $this->success(
             $this->orientationService->getTrialStatus($user),
-            '3-day Premium preview activated successfully!'
+            __('subscription.request_received')
         );
     }
 

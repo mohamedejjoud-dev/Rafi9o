@@ -13,8 +13,10 @@ import {
   LayoutDashboard,
   Map,
   Settings,
+  ShieldCheck,
   TrendingUp,
 } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/lib/i18n";
 
 const DASHBOARD_NAV = [
@@ -28,6 +30,14 @@ const DASHBOARD_NAV = [
   { href: "/dashboard/settings", key: "dash.settings", icon: Settings },
 ] as const;
 
+const ADMIN_NAV_ITEM = { href: "/dashboard/admin", key: "admin.nav", icon: ShieldCheck };
+
+/** Admins also get the Premium management page. */
+function useNavItems() {
+  const { session } = useSession();
+  return session?.user.role === "admin" ? [...DASHBOARD_NAV, ADMIN_NAV_ITEM] : DASHBOARD_NAV;
+}
+
 function isActive(pathname: string, href: string): boolean {
   if (href === "/dashboard") return pathname === "/dashboard";
   return pathname.startsWith(href);
@@ -36,9 +46,10 @@ function isActive(pathname: string, href: string): boolean {
 export function SidebarNav() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const items = useNavItems();
   return (
     <nav aria-label={t("dash.home")} className="space-y-1">
-      {DASHBOARD_NAV.map((item) => {
+      {items.map((item) => {
         const active = isActive(pathname, item.href);
         return (
           <Link
@@ -68,9 +79,10 @@ export function SidebarNav() {
 export function MobileNav() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const items = useNavItems();
   return (
     <nav aria-label={t("dash.home")} className="flex gap-1.5 overflow-x-auto pb-1">
-      {DASHBOARD_NAV.map((item) => {
+      {items.map((item) => {
         const active = isActive(pathname, item.href);
         return (
           <Link

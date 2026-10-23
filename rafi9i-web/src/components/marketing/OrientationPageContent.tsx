@@ -7,12 +7,11 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import FeatureCard from "@/components/shared/FeatureCard";
 import { PrimaryButton } from "@/components/shared/Buttons";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { DISCLAIMER_SHORT } from "@/lib/constants";
 import { PRODUCT_ROUTES } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
 
 export default function OrientationPageContent() {
-  const { locale, dir } = useI18n();
+  const { t, locale, dir } = useI18n();
 
   const isAr = locale === "ar";
   const isAry = locale === "ary";
@@ -116,7 +115,7 @@ export default function OrientationPageContent() {
         ["الشعب والمدارس المقترحة", "ثلاثة مجالات ممكنة", "شروحات مفصلة لكل شعبة ومؤسسة"],
         ["المهارات الشخصية (Soft Skills)", "أولوية أولى للتدريب", "خطة تدريب وتطوير مخصصة"],
         ["خريطة الطريق (Roadmap)", "—", "خطة عمل كاملة على 4 مراحل للمباريات"],
-        ["فترة الوصول", "غير محدودة", "3 أيام تجريبية، ثم اشتراك كامل لاحقاً"],
+        ["طريقة الدفع", "مجاني", "19 درهم بتحويل عبر واتساب، التفعيل بعد التحقق"],
       ]
     : isAry
       ? [
@@ -125,7 +124,7 @@ export default function OrientationPageContent() {
           ["المدارس المقترحة", "تلاتة مجالات ممكنة", "شرح مفصل لكل مدرسة ومجال"],
           ["المهارات اللينة (Soft Skills)", "أول مهارة تدرب عليها", "خطة مخصصة للتطوير"],
           ["خريطة الطريق (Roadmap)", "—", "خطة عمل على 4 مراحل للكونكورات"],
-          ["مدة الاستفادة", "دائمة", "3 أيام تجريبية، ومن بعد اشتراك رسمي"],
+          ["الخلاص", "فابور", "19 درهم بالتحويل عبر واتساب، التفعيل من بعد التحقق"],
         ]
       : isEn
         ? [
@@ -134,7 +133,7 @@ export default function OrientationPageContent() {
             ["Suggested fields", "Three top domains", "In-depth insights per field & school"],
             ["Soft skills", "First priority skill", "Personalized improvement plan"],
             ["Roadmap", "—", "Full 4-step Moroccan exam roadmap"],
-            ["Access period", "Unlimited", "3-day preview trial, subscription later"],
+            ["Payment", "Free", "19 DH by transfer via WhatsApp, activated after verification"],
           ]
         : [
             ["Questionnaire", "12 questions courtes", "10 questions approfondies supplémentaires"],
@@ -142,7 +141,7 @@ export default function OrientationPageContent() {
             ["Domaines suggérés", "Trois domaines possibles", "Explications approfondies par domaine"],
             ["Soft skills", "Première piste", "Plan personnalisé d'amélioration"],
             ["Roadmap", "—", "Feuille de route complète en 4 étapes"],
-            ["Durée d'accès", "Illimitée", "3 jours d'essai, puis abonnement complet plus tard"],
+            ["Paiement", "Gratuit", "19 DH par virement via WhatsApp, activé après vérification"],
           ];
 
   return (
@@ -178,11 +177,11 @@ export default function OrientationPageContent() {
           }
           description={
             isAr
-              ? "التقييم الأساسي (12 سؤالاً، حوالي 6 دقائق) والتقييم المتقدم (10 أسئلة) يستكشفان أربعة أبعاد أساسية."
+              ? "التقييم الأساسي (12 سؤالاً، حوالي 10 دقائق) والتقييم المتقدم (10 أسئلة) يستكشفان أربعة أبعاد أساسية."
               : isAry
-                ? "التقييم الأساسي (12 سؤال، تقريباً 6 دقايق) والتقييم المتقدم (10 أسئلة) كايكشفو 4 جوانب مهمة فملفك."
+                ? "التقييم الأساسي (12 سؤال، تقريباً 10 دقايق) والتقييم المتقدم (10 أسئلة) كايكشفو 4 جوانب مهمة فملفك."
                 : isEn
-                  ? "The basic assessment (12 questions, ~6 mins) and advanced evaluation (10 questions) explore four key dimensions."
+                  ? "The basic assessment (12 questions, ~10 mins) and advanced evaluation (10 questions) explore four key dimensions."
                   : "L'évaluation de base (12 questions, ~10 minutes) et l'évaluation avancée (10 questions) explorent quatre dimensions de ton profil."
           }
         />
@@ -220,7 +219,7 @@ export default function OrientationPageContent() {
         <div className="rafi-card mt-8 overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[34rem] text-start text-sm">
-              <caption className="sr-only">Comparaison</caption>
+              <caption className="sr-only">{t("pub.orientation.tableCaption")}</caption>
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                   <th scope="col" className="px-5 py-3.5 text-start">
@@ -230,7 +229,7 @@ export default function OrientationPageContent() {
                     {isAr ? "الأساسي — مجاني" : isAry ? "الأساسي — فابور" : isEn ? "Basic — Free" : "Base — gratuite"}
                   </th>
                   <th scope="col" className="px-5 py-3.5 text-start text-orange-600 dark:text-orange-400">
-                    {isAr ? "بريميوم — تجربة 3 أيام" : isAry ? "بريميوم — تجربة 3 أيام" : isEn ? "Premium Preview — 3 days" : "Premium Preview — 3 jours"}
+                    {isAr || isAry ? "بريميوم" : "Premium"} — {t("premium.price")}
                   </th>
                 </tr>
               </thead>
@@ -310,7 +309,7 @@ export default function OrientationPageContent() {
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rafi-card p-7 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <span className="rafi-icon-chip" aria-hidden>
-              <ChartPie className="h-5 w-5 text-orange-600" />
+              <ChartPie className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             </span>
             <h2 id="recommandations-titre" className="mt-4 text-lg font-bold text-slate-900 dark:text-slate-100">
               {isAr ? "كيف يتم احتساب التوصيات" : isAry ? "كيفاش كيتصاوبو التوصيات" : isEn ? "How recommendations are calculated" : "Comment les recommandations sont générées"}
@@ -327,7 +326,7 @@ export default function OrientationPageContent() {
           </div>
           <div className="rafi-card p-7 border border-orange-200 dark:border-orange-900/40 bg-orange-50/40 dark:bg-orange-950/20">
             <span className="rafi-icon-chip !bg-white dark:!bg-slate-900" aria-hidden>
-              <GraduationCap className="h-5 w-5 text-orange-600" />
+              <GraduationCap className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             </span>
             <h2 className="mt-4 text-lg font-bold text-orange-950 dark:text-orange-200">
               {isAr ? "ملاحظة هامة قبل البدء" : isAry ? "ملاحظة مهمة قبل ما تبدا" : isEn ? "Important — read before starting" : "Important — à lire avant de commencer"}
@@ -378,11 +377,11 @@ export default function OrientationPageContent() {
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-300">
           {isAr
-            ? "التقييم الأساسي مجاني 100% ويستغرق أقل من 6 دقائق."
+            ? "التقييم الأساسي مجاني 100% ويستغرق أقل من 10 دقائق."
             : isAry
-              ? "التقييم الأساسي فابور 100% وغادي ياخد منك قل من 6 دقايق."
+              ? "التقييم الأساسي فابور 100% وغادي ياخد منك قل من 10 دقايق."
               : isEn
-                ? "The basic assessment is 100% free and takes less than 6 minutes."
+                ? "The basic assessment is 100% free and takes less than 10 minutes."
                 : "L'évaluation de base est 100% gratuite et te prendra moins de 10 minutes."}
         </p>
         <div className="mt-8 flex justify-center">
@@ -390,7 +389,7 @@ export default function OrientationPageContent() {
             {isAr ? "ابدأ توجيهي الآن" : isAry ? "بدا التوجيه ديالي" : isEn ? "Start My Assessment" : "Commencer mon orientation"}
           </PrimaryButton>
         </div>
-        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">{DISCLAIMER_SHORT}</p>
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">{t("footer.disclaimer")}</p>
       </section>
     </PageContainer>
   );

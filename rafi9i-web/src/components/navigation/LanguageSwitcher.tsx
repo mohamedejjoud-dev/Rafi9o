@@ -37,7 +37,6 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
           className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
         >
           <Globe className="h-3.5 w-3.5 opacity-70" />
-          <span>{current.flag}</span>
           <span className="uppercase">{current.code}</span>
         </button>
         {open && (
@@ -58,7 +57,6 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
                     : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
               >
-                <span>{loc.flag}</span>
                 <span>{loc.nativeName}</span>
               </button>
             ))}
@@ -87,7 +85,6 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
               : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
           }`}
         >
-          <span className="me-1">{loc.flag}</span>
           {loc.code === "ar" ? "عربي" : loc.code === "ary" ? "دارجة" : loc.code.toUpperCase()}
         </button>
       ))}

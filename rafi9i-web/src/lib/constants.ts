@@ -20,6 +20,9 @@ export const OG_DEFAULT_IMAGE = "/images/og-default.png";
 /** Frontend demo flag (public pages always ship their own static demo data). */
 export const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
 
-/** Legal / disclaimer copy reused across public pages. */
+/**
+ * Legal / disclaimer copy (French, for server-side/SEO use). In the UI, use
+ * the translated key `footer.disclaimer` instead.
+ */
 export const DISCLAIMER_SHORT =
   "Les recommandations de Rafi9i sont indicatives : elles ne constituent ni une garantie d'admission, ni un diagnostic, ni un conseil officiel.";

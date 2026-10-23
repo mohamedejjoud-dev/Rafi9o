@@ -13,7 +13,7 @@ export default function RafiFab() {
   return (
     <Link
       href="/agent"
-      className="fixed bottom-5 end-5 z-40 flex items-center gap-2 rounded-full bg-orange-600 px-3 py-2 text-white shadow-lg shadow-orange-600/30 hover:bg-orange-500 transition-colors"
+      className="fixed bottom-5 end-5 z-40 flex items-center gap-2 rounded-full bg-orange-700 px-3 py-2 text-white shadow-lg shadow-orange-700/30 hover:bg-orange-800 transition-colors"
       aria-label={t("nav.agent")}
     >
       <RafiLogo iconOnly size={32} />

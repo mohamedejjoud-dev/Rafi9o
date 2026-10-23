@@ -19,7 +19,7 @@ export default function HowItWorks() {
   const { t } = useI18n();
 
   return (
-    <section aria-labelledby="etapes-titre" className="bg-slate-950 py-20 text-white sm:py-24">
+    <section aria-labelledby="etapes-titre" className="bg-stone-950 py-20 text-white sm:py-24">
       <PageContainer>
         <SectionHeading
           id="etapes-titre"
@@ -33,12 +33,12 @@ export default function HowItWorks() {
             <li key={step.title} className="flex flex-col items-center text-center">
               <span className="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-white/5" aria-hidden>
                 <step.icon className="h-7 w-7 text-orange-400" />
-                <span className="absolute -top-1 -end-1 flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-xs font-extrabold text-slate-950">
+                <span className="absolute -top-1 -end-1 flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-xs font-extrabold text-stone-950">
                   {index + 1}
                 </span>
               </span>
-              <h3 className="mt-5 text-lg font-bold">{t(step.title)}</h3>
-              <p className="mt-1.5 text-sm text-slate-400">{t(step.text)}</p>
+              <h3 className="mt-5 text-lg font-bold text-white">{t(step.title)}</h3>
+              <p className="mt-1.5 text-sm text-stone-300">{t(step.text)}</p>
             </li>
           ))}
         </ol>

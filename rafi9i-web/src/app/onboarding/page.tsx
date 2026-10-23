@@ -22,10 +22,12 @@ import PageLoader from "@/components/shared/PageLoader";
 import { api } from "@/lib/api";
 import { useRequireAuth, updateSessionUser } from "@/lib/auth-client";
 import { BASIC_QUESTIONS } from "@/lib/mocks";
+import { useI18n } from "@/lib/i18n";
 
 export default function OnboardingPage() {
   const { session, loading } = useRequireAuth();
   const router = useRouter();
+  const { t } = useI18n();
 
   const [name, setName] = useState("");
   const [city, setCity] = useState<string>("");
@@ -37,16 +39,16 @@ export default function OnboardingPage() {
     if (session) setName(session.user.name ?? "");
   }, [session]);
 
-  if (loading || !session) return <PageLoader message="Chargement de ton espace…" />;
+  if (loading || !session) return <PageLoader message={t("asm.loadingSpace")} />;
 
   const cityOptions = BASIC_QUESTIONS.find((q) => q.id === "city")?.options ?? [];
   const streamOptions = BASIC_QUESTIONS.find((q) => q.id === "bacStream")?.options ?? [];
 
   const submit = async () => {
     const nextErrors: Record<string, string> = {};
-    if (name.trim().length < 2) nextErrors.name = "Indique ton nom (au moins 2 caractères).";
-    if (!city) nextErrors.city = "Choisis ta ville.";
-    if (!bacStream) nextErrors.bacStream = "Choisis ta filière.";
+    if (name.trim().length < 2) nextErrors.name = "asm.onb.err.name";
+    if (!city) nextErrors.city = "asm.onb.err.city";
+    if (!bacStream) nextErrors.bacStream = "asm.onb.err.stream";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -61,45 +63,49 @@ export default function OnboardingPage() {
       updateSessionUser(updated);
       router.push("/assessment/basic");
     } catch {
-      setErrors({ form: "Impossible d'enregistrer pour le moment. Réessaie." });
+      setErrors({ form: "asm.onb.err.form" });
       setBusy(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-orange-50/50 px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-orange-50/50 px-4 py-10 dark:bg-background">
       <div className="w-full max-w-lg">
         <DemoBadge className="mb-4" />
-        <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-8">
           <FoxGuide
             stage="onboarding"
             mood="celebrating"
-            message={`Bienvenue${session.user.name ? ` ${session.user.name.split(" ")[0]}` : ""} ! Trois infos rapides et ton parcours commence.`}
+            message={
+              session.user.name
+                ? t("asm.onb.welcomeNamed", { name: session.user.name.split(" ")[0] })
+                : t("asm.onb.welcome")
+            }
           />
 
-          <h1 className="mt-6 text-xl font-bold text-stone-900">Personnalise ton profil</h1>
-          <p className="mt-1 text-sm text-stone-500">
-            Rafi utilise ces informations pour adapter ses recommandations d&apos;écoles et de filières.
+          <h1 className="mt-6 text-xl font-bold text-foreground">{t("asm.onb.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("asm.onb.subtitle")}
           </p>
 
           <div className="mt-6 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="name">Ton nom complet</Label>
+              <Label htmlFor="name">{t("asm.onb.name")}</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Yassine El Amrani"
+                placeholder={t("asm.onb.namePlaceholder")}
                 autoComplete="name"
               />
-              {errors.name && <p className="text-xs text-red-600" role="alert">{errors.name}</p>}
+              {errors.name && <p className="text-xs text-red-600 dark:text-red-400" role="alert">{t(errors.name)}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="city">Ta ville</Label>
+              <Label htmlFor="city">{t("asm.onb.city")}</Label>
               <Select value={city} onValueChange={(v) => { setCity(v); setErrors((e) => ({ ...e, city: "" })); }}>
-                <SelectTrigger id="city" aria-label="Choisis ta ville">
-                  <SelectValue placeholder="Choisis ta ville" />
+                <SelectTrigger id="city" aria-label={t("asm.onb.cityPlaceholder")}>
+                  <SelectValue placeholder={t("asm.onb.cityPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {cityOptions.map((o) => (
@@ -109,14 +115,14 @@ export default function OnboardingPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.city && <p className="text-xs text-red-600" role="alert">{errors.city}</p>}
+              {errors.city && <p className="text-xs text-red-600 dark:text-red-400" role="alert">{t(errors.city)}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="bacStream">Ta filière au bac</Label>
+              <Label htmlFor="bacStream">{t("asm.onb.stream")}</Label>
               <Select value={bacStream} onValueChange={(v) => { setBacStream(v); setErrors((e) => ({ ...e, bacStream: "" })); }}>
-                <SelectTrigger id="bacStream" aria-label="Choisis ta filière">
-                  <SelectValue placeholder="Choisis ta filière" />
+                <SelectTrigger id="bacStream" aria-label={t("asm.onb.streamPlaceholder")}>
+                  <SelectValue placeholder={t("asm.onb.streamPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {streamOptions.map((o) => (
@@ -126,12 +132,12 @@ export default function OnboardingPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.bacStream && <p className="text-xs text-red-600" role="alert">{errors.bacStream}</p>}
+              {errors.bacStream && <p className="text-xs text-red-600 dark:text-red-400" role="alert">{t(errors.bacStream)}</p>}
             </div>
 
             {errors.form && (
-              <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-                {errors.form}
+              <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300" role="alert">
+                {t(errors.form)}
               </div>
             )}
 
@@ -141,15 +147,15 @@ export default function OnboardingPage() {
                 disabled={busy}
                 className="flex-1 gap-2"
               >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ArrowRight className="h-4 w-4" aria-hidden />}
-                Commencer mon évaluation
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />}
+                {t("asm.onb.submit")}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => router.push("/assessment/basic")}
                 disabled={busy}
               >
-                Passer pour l&apos;instant
+                {t("asm.onb.skip")}
               </Button>
             </div>
           </div>

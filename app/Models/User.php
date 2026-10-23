@@ -47,9 +47,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'premium_requested_at' => 'datetime',
             'premium_activated_at' => 'datetime',
             'premium_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Determine if user has sent a Premium payment request that awaits admin verification.
+     */
+    public function hasPendingPremiumRequest(): bool
+    {
+        return $this->subscription_status === 'pending';
     }
 
     /**

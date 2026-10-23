@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Anthropic\Client as AnthropicClient;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,7 +16,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(AnthropicClient::class, function (): AnthropicClient {
+            return new AnthropicClient(
+                apiKey: (string) config('services.anthropic.api_key'),
+                requestOptions: ['timeout' => (float) config('services.anthropic.timeout', 60)],
+            );
+        });
     }
 
     /**

@@ -14,10 +14,15 @@ import type { AdvancedAnswers, BasicAnswers } from "./types";
 type BasicPartial = Partial<BasicAnswers>;
 type AdvancedPartial = Partial<AdvancedAnswers>;
 
+/** Where the student was in a quiz, so a refresh resumes at the same question. */
+export type AssessmentProgress = { step: number; phase: "questions" | "review" };
+type AssessmentVariant = "basic" | "advanced";
+
 interface AssessmentState {
   /* In-progress answers */
   basic: BasicPartial;
   advanced: AdvancedPartial;
+  progress: Partial<Record<AssessmentVariant, AssessmentProgress>>;
 
   /* Saved (favorites) */
   savedFields: string[];
@@ -33,6 +38,8 @@ interface AssessmentState {
   setAdvancedAnswer: (key: keyof AdvancedAnswers, value: unknown) => void;
   resetAdvanced: () => void;
 
+  setProgress: (variant: AssessmentVariant, progress: AssessmentProgress | null) => void;
+
   toggleSavedField: (id: string) => void;
   toggleSavedResource: (id: string) => void;
 
@@ -45,6 +52,7 @@ export const useAssessmentStore = create<AssessmentState>()(
     (set) => ({
       basic: {},
       advanced: {},
+      progress: {},
       savedFields: [],
       savedResources: [],
       completedSoftSkillActions: [],
@@ -52,11 +60,14 @@ export const useAssessmentStore = create<AssessmentState>()(
 
       setBasicAnswer: (key, value) =>
         set((s) => ({ basic: { ...s.basic, [key]: value } })),
-      resetBasic: () => set({ basic: {} }),
+      resetBasic: () => set((s) => ({ basic: {}, progress: { ...s.progress, basic: undefined } })),
 
       setAdvancedAnswer: (key, value) =>
         set((s) => ({ advanced: { ...s.advanced, [key]: value } })),
-      resetAdvanced: () => set({ advanced: {} }),
+      resetAdvanced: () => set((s) => ({ advanced: {}, progress: { ...s.progress, advanced: undefined } })),
+
+      setProgress: (variant, progress) =>
+        set((s) => ({ progress: { ...s.progress, [variant]: progress ?? undefined } })),
 
       toggleSavedField: (id) =>
         set((s) => ({

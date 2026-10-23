@@ -10,13 +10,13 @@ import { useMemo, useState } from "react";
 import ResourceCard, { type PublicResourceType } from "@/components/shared/ResourceCard";
 import EmptyState from "@/components/shared/EmptyState";
 import { PackageOpen } from "lucide-react";
-import { PUBLIC_RESOURCES } from "@/lib/demo-content";
+import { getPublicResources } from "@/lib/demo-content";
 import { useI18n } from "@/lib/i18n";
 
 type Filter = "all" | PublicResourceType;
 
 export default function ResourcesExplorer() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [filter, setFilter] = useState<Filter>("all");
   const filters: { value: Filter; label: string }[] = [
     { value: "all", label: t("resources.all") },
@@ -25,15 +25,7 @@ export default function ResourcesExplorer() {
     { value: "ebook", label: t("resources.ebooks") },
   ];
 
-  const resources = useMemo(
-    () => PUBLIC_RESOURCES.map((resource, index) => ({
-      ...resource,
-      title: t(`resources.item${index + 1}.title`),
-      description: t(`resources.item${index + 1}.description`),
-      topic: t(`resources.item${index + 1}.topic`),
-    })),
-    [t]
-  );
+  const resources = useMemo(() => getPublicResources(locale), [locale]);
 
   const visible = useMemo(
     () => (filter === "all" ? resources : resources.filter((r) => r.type === filter)),
@@ -56,11 +48,11 @@ export default function ResourcesExplorer() {
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 ${
                 active
                   ? "border-orange-600 bg-orange-600 text-white shadow-sm"
-                  : "border-stone-200 bg-white text-stone-700 hover:border-orange-300 hover:text-orange-700"
+                  : "border-border bg-card text-foreground hover:border-orange-300 hover:text-orange-700 dark:hover:border-orange-800 dark:hover:text-orange-400"
               }`}
             >
               {f.label}
-              <span className={`ml-1.5 text-xs ${active ? "text-orange-100" : "text-stone-400"}`} aria-hidden>
+              <span className={`ms-1.5 text-xs ${active ? "text-orange-100" : "text-muted-foreground"}`} aria-hidden>
                 {count}
               </span>
             </button>
@@ -83,7 +75,7 @@ export default function ResourcesExplorer() {
         </div>
       )}
 
-      <p className="mt-8 text-center text-xs leading-relaxed text-stone-500">
+      <p className="mt-8 text-center text-xs leading-relaxed text-muted-foreground">
         {t("resources.disclaimer")}
       </p>
     </div>

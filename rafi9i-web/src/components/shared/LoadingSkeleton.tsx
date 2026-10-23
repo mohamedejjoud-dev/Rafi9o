@@ -14,7 +14,7 @@ export default function LoadingSkeleton({
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="h-4 animate-pulse rounded-full bg-stone-200/80"
+          className="h-4 animate-pulse rounded-full bg-muted"
           style={{ width: `${100 - ((i * 13) % 40)}%` }}
         />
       ))}
