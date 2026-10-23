@@ -37,7 +37,7 @@ class UpdateProfileRequest extends FormRequest
             'interests' => ['sometimes', 'nullable', 'array', 'max:50'],
             'interests.*' => ['string', 'max:50'],
             'location' => ['sometimes', 'nullable', 'string', 'max:150'],
-            'preferred_language' => ['sometimes', 'string', 'in:en,ar,fr'],
+            'preferred_language' => ['sometimes', 'string', 'in:en,ar,ary,fr'],
         ];
     }
 }

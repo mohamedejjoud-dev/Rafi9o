@@ -4,7 +4,6 @@
 "use client";
 
 import Link from "next/link";
-import { SITE_NAME } from "@/lib/constants";
 import RafiLogo from "@/components/ui/RafiLogo";
 import { useI18n } from "@/lib/i18n";
 
@@ -38,7 +37,7 @@ export default function PublicFooter() {
     <footer className="mt-auto bg-slate-900 text-slate-300">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr] lg:px-8">
         <div>
-          <Link href="/" className="inline-flex" aria-label={SITE_NAME}>
+          <Link href="/" className="inline-flex" aria-label={t("pub.a11y.homeLink")}>
             <RafiLogo size={36} onDark />
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
@@ -68,7 +67,7 @@ export default function PublicFooter() {
 
       <div className="border-t border-slate-800 py-6">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 text-xs leading-relaxed text-slate-400 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <p>© {year} {SITE_NAME}. {t("footer.rights")}</p>
+          <p>© {year} {t("brand.name")}. {t("footer.rights")}</p>
           <p className="max-w-xl">{t("footer.disclaimer")}</p>
         </div>
       </div>

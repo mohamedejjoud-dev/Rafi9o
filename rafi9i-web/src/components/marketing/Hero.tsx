@@ -17,6 +17,7 @@ interface BacStream {
   id: string;
   name: string;
   short: string;
+  /** Translation keys of the suggested schools. */
   topMatches: string[];
   message: string;
   compat: number;
@@ -27,35 +28,35 @@ const BAC_STREAMS_CONFIG: Omit<BacStream, "name">[] = [
   {
     id: "sm",
     short: "stream.sm",
-    topMatches: ["CPGE / Grandes Écoles", "UM6P Benguerir", "ENSIAS / EMI Rabat"],
+    topMatches: ["pub.hero.school.cpge", "pub.hero.school.um6p", "pub.hero.school.ensias"],
     message: "stream.sm.msg",
     compat: 94,
   },
   {
     id: "pc",
     short: "stream.pc",
-    topMatches: ["ENSA", "Médecine (FMP)", "ENSAM"],
+    topMatches: ["pub.hero.school.ensa", "pub.hero.school.fmp", "pub.hero.school.ensam"],
     message: "stream.pc.msg",
     compat: 81,
   },
   {
     id: "svt",
     short: "stream.svt",
-    topMatches: ["Médecine & Pharmacie", "IAV Hassan II", "Biotechnologies"],
+    topMatches: ["pub.hero.school.medPharma", "pub.hero.school.iav", "pub.hero.school.biotech"],
     message: "stream.svt.msg",
     compat: 88,
   },
   {
     id: "eco",
     short: "stream.eco",
-    topMatches: ["ISCAE Casablanca", "Réseau ENCG", "Al Akhawayn"],
+    topMatches: ["pub.hero.school.iscae", "pub.hero.school.encg", "pub.hero.school.akhawayn"],
     message: "stream.eco.msg",
     compat: 72,
   },
   {
     id: "lettres",
     short: "stream.lettres",
-    topMatches: ["Droit (FSJES)", "Journalisme & Médias", "Langues & Traduction"],
+    topMatches: ["pub.hero.school.law", "pub.hero.school.media", "pub.hero.school.languages"],
     message: "stream.lettres.msg",
     compat: 65,
   },
@@ -70,6 +71,7 @@ export default function Hero() {
     ...stream,
     name: t(stream.short),
     message: t(stream.message),
+    topMatches: stream.topMatches.map((key) => t(key)),
   })), [locale, t]);
 
   const activeStream = BAC_STREAMS.find(s => s.id === activeStreamId) || BAC_STREAMS[0];
@@ -87,7 +89,7 @@ export default function Hero() {
 
           <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-5xl lg:text-[3.5rem] lg:leading-[1.08]">
             {t("hero.title.lead")}{" "}
-            <span className="text-orange-500">Rafi</span>
+            <span className="text-orange-500">{t("pub.mascot.name")}</span>
             {t("hero.title.trail")}
           </h1>
 

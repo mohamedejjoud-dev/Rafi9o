@@ -15,6 +15,7 @@
 
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const MASCOT_SRC = "/images/rafi9i-mark.png";
 
@@ -53,17 +54,20 @@ export default function RafiFox({
   className = "",
   decorative = false,
 }: RafiFoxProps) {
+  const { t } = useI18n();
   const thinking = mood === "thinking" || stage === "thinking";
   const celebrating = mood === "celebrating" || stage === "achievement" || stage === "result";
   const concerned = mood === "concerned";
 
-  const altText = thinking
-    ? "Rafi réfléchit"
-    : celebrating
-      ? "Rafi célèbre ta réussite"
-      : concerned
-        ? "Rafi est inquiet"
-        : "Rafi, ton guide d'orientation";
+  const altText = t(
+    thinking
+      ? "pub.mascot.alt.thinking"
+      : celebrating
+        ? "pub.mascot.alt.celebrating"
+        : concerned
+          ? "pub.mascot.alt.concerned"
+          : "pub.mascot.alt.default"
+  );
 
   const motion = celebrating ? "rf-bounce" : concerned ? "" : "rf-float";
   const pose = thinking ? "-rotate-[8deg]" : concerned ? "rotate-[6deg] translate-y-[4%]" : "";

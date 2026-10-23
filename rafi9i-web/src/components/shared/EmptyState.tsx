@@ -18,14 +18,14 @@ export default function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-stone-200 bg-white/60 px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card/60 px-6 py-12 text-center">
       {Icon && (
         <span className="rafi-icon-chip" aria-hidden>
           <Icon className="h-5 w-5" />
         </span>
       )}
-      <h3 className="mt-3 text-base font-bold text-navy-900">{title}</h3>
-      {children && <p className="mt-1.5 max-w-md text-sm leading-relaxed text-stone-600">{children}</p>}
+      <h3 className="mt-3 text-base font-bold text-foreground">{title}</h3>
+      {children && <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">{children}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );

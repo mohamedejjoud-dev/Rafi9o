@@ -4,6 +4,7 @@
 "use client";
 
 import { Lock } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function LockedPremiumCard({
   title,
@@ -12,6 +13,8 @@ export default function LockedPremiumCard({
   title: string;
   teaser: string;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="relative overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
       <div className="select-none p-5 blur-[3px]" aria-hidden>
@@ -27,7 +30,7 @@ export default function LockedPremiumCard({
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-600 text-white shadow">
           <Lock className="h-4.5 w-4.5" aria-hidden />
         </span>
-        <p className="text-xs font-semibold text-stone-700">Contenu Aperçu Premium</p>
+        <p className="text-xs font-semibold text-stone-700">{t("premium.locked")}</p>
       </div>
     </div>
   );

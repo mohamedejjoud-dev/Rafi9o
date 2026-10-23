@@ -15,21 +15,21 @@ export default function AboutPageContent() {
   const isEn = locale === "en";
 
   const breadcrumbHome = isAr ? "الرئيسية" : isAry ? "الرئيسية" : isEn ? "Home" : "Accueil";
-  const breadcrumbAbout = isAr ? "عن المنصة" : isAry ? "على رافي9ي" : isEn ? "About" : "À propos";
+  const breadcrumbAbout = isAr ? "عن المنصة" : isAry ? "على رفيقي" : isEn ? "About" : "À propos";
 
   const eyebrow = isAr ? "الرؤية والرسالة" : isAry ? "الرؤية والمهمة" : isEn ? "Vision & Mission" : "Vision & Mission";
   const title = isAr
-    ? "انطلق رافي9ي من واقع ملموس: في المغرب، يختار العديد من التلاميذ مسارهم صدفة."
+    ? "انطلق رفيقي من واقع ملموس: في المغرب، يختار العديد من التلاميذ مسارهم صدفة."
     : isAry
-      ? "رافي9ي جا من فكرة بسيطة: فالمغرب، بزاف دالتلامذ كيعزلو التوجيه ديالهم غير بالصدفة."
+      ? "رفيقي جا من فكرة بسيطة: فالمغرب، بزاف دالتلامذ كيعزلو التوجيه ديالهم غير بالصدفة."
       : isEn
         ? "Rafi9i was born from a simple fact: in Morocco, too many students choose their path by default."
         : "Rafi9i est né d'un constat simple : au Maroc, trop d'élèves choisissent leur voie par défaut.";
 
   const description = isAr
-    ? "بسبب غياب التوجيه المبكر وضيق الوقت للاستكشاف، يسلك الكثيرون شعباً لا تعبر عن إمكانياتهم الحقيقية. رافي9ي يغير المعادلة: نمنح كل تلميذ وطالب فضاءً ذكياً ومشجعاً لاكتشاف طاقاته وبناء مساره المستقبلي بمرافقة رافي."
+    ? "بسبب غياب التوجيه المبكر وضيق الوقت للاستكشاف، يسلك الكثيرون شعباً لا تعبر عن إمكانياتهم الحقيقية. رفيقي يغير المعادلة: نمنح كل تلميذ وطالب فضاءً ذكياً ومشجعاً لاكتشاف طاقاته وبناء مساره المستقبلي بمرافقة رافي."
     : isAry
-      ? "حيت ماكاينش توجيه واضح والوقت ديما مزير، بزاف دالشباب كيتبعو شي طريق غير حيت صحابهم مشاو فيها. رافي9ي جا باش يبدل هادشي: يعطي لكل تلميذ وطالب فضاء زوين ومريح باش يكتشف طاقاتو ويرسم طريقو مع رافي."
+      ? "حيت ماكاينش توجيه واضح والوقت ديما مزير، بزاف دالشباب كيتبعو شي طريق غير حيت صحابهم مشاو فيها. رفيقي جا باش يبدل هادشي: يعطي لكل تلميذ وطالب فضاء زوين ومريح باش يكتشف طاقاتو ويرسم طريقو مع رافي."
       : isEn
         ? "Without clear guidance and time to explore, many follow default tracks without knowing if it fits them. Rafi9i changes that: giving every Moroccan high schooler and student a supportive, smart space to reveal their talents and chart their course with Rafi."
         : "Faute de repères clairs et de temps pour explorer, beaucoup suivent la voie suggérée sans savoir si elle leur correspond. Rafi9i change la donne : offrir à chaque lycéen et étudiant un espace bienveillant pour révéler ses talents et bâtir sa trajectoire avec Rafi.";
@@ -118,14 +118,14 @@ export default function AboutPageContent() {
       <section aria-labelledby="definition-titre" className="mt-14">
         <div className="rafi-card p-6 sm:p-8 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <h2 id="definition-titre" className="text-xl font-bold text-slate-900 dark:text-slate-100">
-            {isAr ? "رافي9ي في تعريف موجز" : isAry ? "رافي9ي فكلمات بساط" : isEn ? "Rafi9i in One Definition" : "Rafi9i, en une définition"}
+            {isAr ? "رفيقي في تعريف موجز" : isAry ? "رفيقي فكلمات بساط" : isEn ? "Rafi9i in One Definition" : "Rafi9i, en une définition"}
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             <strong className="text-slate-800 dark:text-slate-100">
               {isAr
-                ? "رافي9ي منصة ويب للتوجيه الأكاديمي، وتطوير المهارات الشخصية، والتحضير للمباريات، صُممت خصيصاً لتلاميذ وطلاب المغرب."
+                ? "رفيقي منصة ويب للتوجيه الأكاديمي، وتطوير المهارات الشخصية، والتحضير للمباريات، صُممت خصيصاً لتلاميذ وطلاب المغرب."
                 : isAry
-                  ? "رافي9ي منصة ويب للتوجيه الدراسي، وتطوير المهارات اللينة، والتحضير للكونكورات، مصاوبة خصيصاً للتلامذ والطلبة فالمغرب."
+                  ? "رفيقي منصة ويب للتوجيه الدراسي، وتطوير المهارات اللينة، والتحضير للكونكورات، مصاوبة خصيصاً للتلامذ والطلبة فالمغرب."
                   : isEn
                     ? "Rafi9i is a web platform for academic orientation, soft skills development, and contest preparation designed specifically for Moroccan high schoolers and students."
                     : "Rafi9i est une plateforme web d'orientation académique, de développement des soft skills et de préparation aux concours, conçue spécialement pour les lycéens et étudiants du Maroc."}
@@ -146,7 +146,7 @@ export default function AboutPageContent() {
         <div className="rafi-card p-7 border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/40 dark:bg-emerald-950/20">
           <h2 id="honnete-titre" className="flex items-center gap-2 text-lg font-bold text-emerald-800 dark:text-emerald-300">
             <Rocket className="h-5 w-5" aria-hidden />{" "}
-            {isAr ? "ما تمثله منصة رافي9ي" : isAry ? "شنو كايقدم رافي9ي" : isEn ? "What Rafi9i is" : "Ce que Rafi9i est"}
+            {isAr ? "ما تمثله منصة رفيقي" : isAry ? "شنو كايقدم رفيقي" : isEn ? "What Rafi9i is" : "Ce que Rafi9i est"}
           </h2>
           <ul className="mt-4 space-y-3">
             {isItems.map((item) => (
@@ -159,7 +159,7 @@ export default function AboutPageContent() {
         </div>
         <div className="rafi-card p-7 border border-rose-200 dark:border-rose-900/50 bg-rose-50/40 dark:bg-rose-950/20">
           <h2 className="text-lg font-bold text-rose-800 dark:text-rose-300">
-            {isAr ? "ما لا تمثله منصة رافي9ي" : isAry ? "شنو ماكاينش فرافي9ي" : isEn ? "What Rafi9i is not" : "Ce que Rafi9i n'est pas"}
+            {isAr ? "ما لا تمثله منصة رفيقي" : isAry ? "شنو ماكاينش فرفيقي" : isEn ? "What Rafi9i is not" : "Ce que Rafi9i n'est pas"}
           </h2>
           <ul className="mt-4 space-y-3">
             {isNotItems.map((item) => (

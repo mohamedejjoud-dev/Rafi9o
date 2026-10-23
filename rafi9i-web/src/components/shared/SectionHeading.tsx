@@ -26,7 +26,7 @@ export default function SectionHeading({
   tone = "light",
   className = "",
 }: SectionHeadingProps) {
-  const alignment = align === "center" ? "items-center text-center" : "items-start text-left";
+  const alignment = align === "center" ? "items-center text-center" : "items-start text-start";
   const dark = tone === "dark";
   return (
     <div className={`flex flex-col gap-3 ${alignment} ${className}`}>

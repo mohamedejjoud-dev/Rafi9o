@@ -35,7 +35,7 @@ class AdminSubscriptionController extends BaseApiController
 
         return $this->success(
             new UserResource($user),
-            'Premium subscription activated successfully for '.$user->name.'.'
+            __('subscription.activated', ['name' => $user->name])
         );
     }
 
@@ -56,12 +56,13 @@ class AdminSubscriptionController extends BaseApiController
             'subscription_status' => 'free',
             'premium_activated_at' => null,
             'premium_expires_at' => null,
+            'premium_requested_at' => null,
             'subscription_notes' => $validated['notes'] ?? 'Deactivated by administrator',
         ])->save();
 
         return $this->success(
             new UserResource($user),
-            'Subscription downgraded to Free for '.$user->name.'.'
+            __('subscription.deactivated', ['name' => $user->name])
         );
     }
 
@@ -74,12 +75,26 @@ class AdminSubscriptionController extends BaseApiController
             return $this->forbidden('Access restricted to administrators.');
         }
 
+        $validated = $request->validate([
+            'status' => ['sometimes', 'nullable', 'string', 'in:free,pending,premium'],
+            'search' => ['sometimes', 'nullable', 'string', 'max:100'],
+        ]);
+
         $users = User::query()
-            ->when($request->query('status'), fn ($q, $status) => $q->where('subscription_status', $status))
+            ->where('role', '!=', 'admin')
+            ->when($validated['status'] ?? null, fn ($q, $status) => $q->where('subscription_status', $status))
+            ->when($validated['search'] ?? null, function ($q, $search) {
+                $q->where(fn ($inner) => $inner
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%"));
+            })
+            ->orderByRaw("case when subscription_status = 'pending' then 0 else 1 end")
+            ->orderByDesc('premium_requested_at')
             ->latest()
             ->paginate(20);
 
         return $this->success([
+            'pending_count' => User::where('subscription_status', 'pending')->count(),
             'items' => UserResource::collection($users->items()),
             'pagination' => [
                 'current_page' => $users->currentPage(),

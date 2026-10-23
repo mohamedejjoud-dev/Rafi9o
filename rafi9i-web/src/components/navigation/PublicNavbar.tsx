@@ -48,12 +48,12 @@ export default function PublicNavbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md shadow-xs">
-      <nav aria-label="Navigation principale" className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <nav aria-label={t("pub.a11y.mainNav")} className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         {/* ── Brand Logo ── */}
         <Link
           href="/"
           className="flex items-center rounded-xl transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-orange-500"
-          aria-label="Rafi9i — retour à l'accueil"
+          aria-label={t("pub.a11y.homeLink")}
         >
           <RafiLogo size={36} className="text-slate-900 dark:text-white" />
         </Link>
@@ -71,7 +71,7 @@ export default function PublicNavbar() {
           <li>
             <Link href="/agent" className={linkClasses("/agent")}>
               <span className="flex items-center gap-1.5">
-                <Bot className="h-3.5 w-3.5" />
+                <Bot className="h-3.5 w-3.5" aria-hidden />
                 {t("nav.agent")}
               </span>
             </Link>

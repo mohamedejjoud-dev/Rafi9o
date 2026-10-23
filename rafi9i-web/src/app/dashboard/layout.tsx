@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <TrialChip />
           <div className="rounded-2xl border border-border/60 bg-white/60 dark:bg-slate-900 p-3 backdrop-blur-sm">
             <p className="text-xs font-bold text-stone-800 dark:text-slate-100">{session.user.name}</p>
-            <p className="mt-0.5 truncate text-[11px] text-stone-400">{session.user.email}</p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{session.user.email}</p>
           </div>
           <DemoBadge className="w-full justify-center" />
         </div>

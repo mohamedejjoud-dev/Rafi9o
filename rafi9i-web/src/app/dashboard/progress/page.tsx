@@ -15,12 +15,14 @@ import TrendChart from "@/components/progress/TrendChart";
 import { api } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth-client";
 import { useAssessmentStore } from "@/lib/assessment-store";
+import { useI18n } from "@/lib/i18n";
 import { WEEKLY_ACTIVITY } from "@/lib/mocks";
 import type { DashboardData, LatestResult } from "@/lib/types";
 
 export default function ProgressPage() {
   const { session, loading } = useRequireAuth();
   const store = useAssessmentStore();
+  const { t } = useI18n();
   const [latest, setLatest] = useState<LatestResult | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
@@ -33,7 +35,7 @@ export default function ProgressPage() {
         setLatest(r);
         setDashboard(d);
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Chargement impossible."))
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : "dsh.loadError"))
       .finally(() => setFetching(false));
   }, [session]);
 
@@ -54,20 +56,20 @@ export default function ProgressPage() {
       ? Math.round((premium.roadmap.filter((r) => r.completed).length / Math.max(1, premium.roadmap.length)) * 100)
       : 0;
     return [
-      { icon: UserRound, label: "Profil & évaluations", value: dashboard?.profileCompletion ?? 0 },
-      { icon: BookOpen, label: "Ressources terminées", value: resources },
-      { icon: Sparkles, label: "Activités soft skills", value: softSkills },
-      { icon: Compass, label: "Parcours (roadmap)", value: roadmap },
+      { icon: UserRound, labelKey: "dsh.prog.cat.profile", value: dashboard?.profileCompletion ?? 0 },
+      { icon: BookOpen, labelKey: "dsh.prog.cat.resources", value: resources },
+      { icon: Sparkles, labelKey: "dsh.prog.cat.soft", value: softSkills },
+      { icon: Compass, labelKey: "dsh.prog.cat.roadmap", value: roadmap },
     ];
   }, [latest, dashboard, store.completedSoftSkillActions, store.weeklyChallengeCompleted]);
 
-  if (loading || !session) return <PageLoader message="Chargement…" />;
-  if (fetching) return <PageLoader message="Calcul de ta progression…" />;
+  if (loading || !session) return <PageLoader message={t("dsh.loading")} />;
+  if (fetching) return <PageLoader message={t("dsh.prog.loading")} />;
 
   if (error || !dashboard) {
     return (
       <div className="py-6">
-        <ErrorState description={error || "Données indisponibles."} onRetry={() => window.location.reload()} />
+        <ErrorState description={error ? t(error) : t("dsh.dataUnavailable")} onRetry={() => window.location.reload()} />
       </div>
     );
   }
@@ -78,47 +80,50 @@ export default function ProgressPage() {
     <div className="space-y-6 pb-10">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="flex items-center gap-3 text-xl font-bold text-stone-900">
+          <h1 className="flex items-center gap-3 text-xl font-bold text-foreground">
             <span className="rafi-icon-chip">
               <TrendingUp className="h-5 w-5" aria-hidden />
             </span>
-            Progression
+            {t("dash.progress")}
           </h1>
-          <p className="mt-0.5 text-sm text-stone-500">Vue d&apos;ensemble de ton engagement.</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{t("dsh.prog.subtitle")}</p>
         </div>
         <DemoBadge />
       </header>
 
-      <section className="flex flex-col items-center gap-4 rounded-2xl border border-orange-300 bg-gradient-to-r from-orange-50 to-amber-50 p-6 shadow-sm sm:flex-row">
+      <section className="flex flex-col items-center gap-4 rounded-2xl border border-orange-300 bg-gradient-to-r from-orange-50 to-amber-50 p-6 shadow-sm sm:flex-row dark:border-orange-900/60 dark:from-orange-950/50 dark:to-amber-950/30">
         <ScoreRing value={overall} size={96} />
-        <div className="text-center sm:text-left">
-          <h2 className="text-lg font-bold text-stone-900">Progression globale : {overall}%</h2>
-          <p className="mt-1 text-sm text-stone-600">
-            Série en cours : <strong>{dashboard.streak} jours</strong> · {dashboard.completedResources} ressource(s)
-            terminée(s) · parcours à {dashboard.roadmapProgress}%.
+        <div className="text-center sm:text-start">
+          <h2 className="text-lg font-bold text-foreground">{t("dsh.prog.overall", { value: overall })}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("dsh.prog.streakLabel")} <strong>{t("dsh.prog.streakDays", { count: dashboard.streak })}</strong> ·{" "}
+            {t("dsh.prog.summaryRest", {
+              resources: dashboard.completedResources,
+              roadmap: dashboard.roadmapProgress,
+            })}
           </p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm" aria-labelledby="categories">
-        <h2 id="categories" className="text-sm font-bold text-stone-900">Détail par catégorie</h2>
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm" aria-labelledby="categories">
+        <h2 id="categories" className="text-sm font-bold text-foreground">{t("dsh.prog.byCategory")}</h2>
         <ul className="mt-4 space-y-4">
           {categories.map((c) => (
-            <li key={c.label} className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-100">
-                <c.icon className="h-4.5 w-4.5 text-orange-600" aria-hidden />
+            <li key={c.labelKey} className="flex items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-950/60">
+                <c.icon className="h-4.5 w-4.5 text-orange-600 dark:text-orange-300" aria-hidden />
               </span>
-              <ScoreBar value={c.value} label={c.label} className="flex-1" highlight={c.value >= 75} />
+              <ScoreBar value={c.value} label={t(c.labelKey)} className="flex-1" highlight={c.value >= 75} />
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm" aria-labelledby="activity-chart">
-        <h2 id="activity-chart" className="text-sm font-bold text-stone-900">Activité des 8 dernières semaines</h2>
-        <p className="mt-1 text-xs text-stone-500">Actions réalisées par semaine (données de démonstration).</p>
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm" aria-labelledby="activity-chart">
+        <h2 id="activity-chart" className="text-sm font-bold text-foreground">{t("dsh.prog.activity")}</h2>
+        <p className="mt-1 text-xs text-muted-foreground">{t("dsh.prog.activityBody")}</p>
         <div className="mt-3">
-          <TrendChart data={WEEKLY_ACTIVITY} label="actions" />
+          <TrendChart data={WEEKLY_ACTIVITY} label={t("dsh.prog.actions")} />
         </div>
       </section>
     </div>

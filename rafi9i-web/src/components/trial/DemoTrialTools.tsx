@@ -6,11 +6,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bug, Crown, FlaskConical, RotateCcw, Timer, TimerOff } from "lucide-react";
+import { Bug, Clock, Crown, FlaskConical, RotateCcw, Timer, TimerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
   isAiFailureSimulated,
+  requestPremium,
   resetAllDemoData,
   resetTrial,
   setAiFailureSimulated,
@@ -18,8 +19,10 @@ import {
   simulateSubscribed,
   startTrial,
 } from "@/lib/mocks";
+import { useI18n } from "@/lib/i18n";
 
 export default function DemoTrialTools({ onChanged }: { onChanged: () => void }) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [aiFail, setAiFail] = useState(false);
 
@@ -29,48 +32,56 @@ export default function DemoTrialTools({ onChanged }: { onChanged: () => void })
 
   const run = (fn: () => void, message: string) => {
     fn();
-    toast({ title: "Outil de démonstration", description: message });
+    toast({ title: t("pub.demoTools.toastTitle"), description: message });
     onChanged();
   };
 
   return (
-    <details className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-3 text-stone-600">
-      <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-stone-500">
+    <details className="rounded-xl border border-dashed border-border bg-muted p-3 text-muted-foreground">
+      <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-muted-foreground">
         <FlaskConical className="h-4 w-4" aria-hidden />
-        Outils de démonstration (états de l&apos;essai, échec IA)
+        {t("pub.demoTools.summary")}
       </summary>
       <div className="mt-3 flex flex-wrap gap-2">
         <Button
           variant="outline"
           size="sm"
           className="gap-1.5"
-          onClick={() => run(() => startTrial(), "Essai actif simulé (3 jours).")}
+          onClick={() => run(() => startTrial(), t("pub.demoTools.trialActiveDone"))}
         >
-          <Timer className="h-4 w-4" aria-hidden /> Simuler essai actif
+          <Timer className="h-4 w-4" aria-hidden /> {t("pub.demoTools.trialActive")}
         </Button>
         <Button
           variant="outline"
           size="sm"
           className="gap-1.5"
-          onClick={() => run(() => simulateExpiredTrial(), "Essai expiré simulé.")}
+          onClick={() => run(() => simulateExpiredTrial(), t("pub.demoTools.expireDone"))}
         >
-          <TimerOff className="h-4 w-4" aria-hidden /> Simuler expiration
+          <TimerOff className="h-4 w-4" aria-hidden /> {t("pub.demoTools.expire")}
         </Button>
         <Button
           variant="outline"
           size="sm"
           className="gap-1.5"
-          onClick={() => run(() => simulateSubscribed(), "Abonnement Premium simulé (démo).")}
+          onClick={() => run(() => simulateSubscribed(), t("pub.demoTools.premiumDone"))}
         >
-          <Crown className="h-4 w-4" aria-hidden /> Simuler Premium
+          <Crown className="h-4 w-4" aria-hidden /> {t("pub.demoTools.premium")}
         </Button>
         <Button
           variant="outline"
           size="sm"
           className="gap-1.5"
-          onClick={() => run(() => resetTrial(), "Essai réinitialisé (non commencé).")}
+          onClick={() => run(() => requestPremium(), t("pub.demoTools.pendingDone"))}
         >
-          <RotateCcw className="h-4 w-4" aria-hidden /> Réinitialiser l&apos;essai
+          <Clock className="h-4 w-4" aria-hidden /> {t("pub.demoTools.pending")}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => run(() => resetTrial(), t("pub.demoTools.resetTrialDone"))}
+        >
+          <RotateCcw className="h-4 w-4" aria-hidden /> {t("pub.demoTools.resetTrial")}
         </Button>
         <Button
           variant={aiFail ? "default" : "outline"}
@@ -81,22 +92,22 @@ export default function DemoTrialTools({ onChanged }: { onChanged: () => void })
             setAiFailureSimulated(next);
             setAiFail(next);
             toast({
-              title: "Outil de démonstration",
+              title: t("pub.demoTools.toastTitle"),
               description: next
-                ? "Échec IA activé : les prochains résultats afficheront le fallback déterministe."
-                : "Échec IA désactivé.",
+                ? t("pub.demoTools.aiFailOnDone")
+                : t("pub.demoTools.aiFailOffDone"),
             });
           }}
         >
-          <Bug className="h-4 w-4" aria-hidden /> {aiFail ? "Désactiver" : "Simuler"} l&apos;échec IA
+          <Bug className="h-4 w-4" aria-hidden /> {aiFail ? t("pub.demoTools.aiFailOff") : t("pub.demoTools.aiFailOn")}
         </Button>
         <Button
           variant="outline"
           size="sm"
           className="gap-1.5"
-          onClick={() => run(() => resetAllDemoData(), "Toutes les données de démo ont été réinitialisées.")}
+          onClick={() => run(() => resetAllDemoData(), t("pub.demoTools.resetAllDone"))}
         >
-          <RotateCcw className="h-4 w-4" aria-hidden /> Tout réinitialiser
+          <RotateCcw className="h-4 w-4" aria-hidden /> {t("pub.demoTools.resetAll")}
         </Button>
       </div>
     </details>

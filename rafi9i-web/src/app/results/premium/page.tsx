@@ -28,11 +28,18 @@ import { useRequireAuth } from "@/lib/auth-client";
 import { canViewPremiumResult } from "@/lib/access";
 import { useAssessmentStore } from "@/lib/assessment-store";
 import type { LatestResult, TrialStatus } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
+
+/** Sentinel for failures without a server message; rendered as a translated fallback. */
+const LOAD_FAILED = "__load_failed__";
+/** Sentinel for "no demo result available"; rendered as a translated message. */
+const NO_DEMO = "__no_demo__";
 
 export default function PremiumResultPage() {
   const { session, loading } = useRequireAuth();
   const router = useRouter();
   const store = useAssessmentStore();
+  const { t } = useI18n();
 
   const [result, setResult] = useState<LatestResult | null>(null);
   const [trial, setTrial] = useState<TrialStatus | null>(null);
@@ -47,7 +54,7 @@ export default function PremiumResultPage() {
         setResult(r);
         setTrial(t);
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Chargement impossible."))
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : LOAD_FAILED))
       .finally(() => setFetching(false));
   }, []);
 
@@ -105,23 +112,26 @@ export default function PremiumResultPage() {
     }
   }, [result, trial, fetching, router]);
 
-  if (loading || !session) return <PageLoader message="Chargement de ton espace…" />;
-  if (fetching) return <PageLoader message="Rafi prépare ton analyse Premium…" />;
+  if (loading || !session) return <PageLoader message={t("asm.loadingSpace")} />;
+  if (fetching) return <PageLoader message={t("asm.prem.preparing")} />;
 
   if (error || !result || result.kind !== "premium") {
     return (
-      <main className="min-h-screen bg-orange-50/40 px-4 py-10">
+      <main className="min-h-screen bg-orange-50/40 px-4 dark:bg-background py-10">
         <ErrorState
-          title="Résultat Premium indisponible"
+          title={t("asm.prem.unavailable")}
           description={
-            error ||
-            "Ton résultat détaillé n'est pas encore prêt : termine l'évaluation approfondie pour le générer."
+            error === LOAD_FAILED
+              ? t("asm.loadError")
+              : error === NO_DEMO
+                ? t("asm.prem.noDemo")
+                : error || t("asm.prem.notReady")
           }
           onRetry={load}
           onDemoFallback={() => {
             const demo = demoBackend.getLatestResult();
             if (demo) setResult(demo);
-            else setError("Aucun résultat de démonstration disponible — termine d'abord une évaluation.");
+            else setError(NO_DEMO);
           }}
         />
       </main>
@@ -134,19 +144,19 @@ export default function PremiumResultPage() {
   const resourcesDone = orientation.resources.filter((r) => r.completed).length;
 
   return (
-    <main className="min-h-screen bg-orange-50/40 px-4 py-8">
+    <main className="min-h-screen bg-orange-50/40 px-4 dark:bg-background py-8">
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <DemoBadge />
           <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-600 px-3 py-1 text-[11px] font-bold text-white">
             <Crown className="h-3 w-3" aria-hidden />
-            Résultat Premium
+            {t("asm.prem.badge")}
           </span>
         </div>
 
         {result.source === "fallback" && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800" role="note">
-            Rafi IA momentanément indisponible — résultat déterministe affiché (aucune donnée perdue).
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300" role="note">
+            {t("asm.fallbackNoticeSafe")}
           </div>
         )}
 
@@ -154,22 +164,22 @@ export default function PremiumResultPage() {
           stage="results"
           mood="celebrating"
           progress={100}
-          message={`Analyse complète terminée, ${session.user.name.split(" ")[0]} ! Voici tes quatre sections Premium`}
+          message={t("asm.prem.congrats", { name: session.user.name.split(" ")[0] })}
         />
 
         {/* Profile summary + primary score */}
-        <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             {primary && <ScoreRing value={primary.score} size={84} />}
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-bold text-stone-900 sm:text-xl">
-                {primary ? primary.name : "Ton orientation"}
+              <h1 className="text-lg font-bold text-foreground sm:text-xl">
+                {primary ? primary.name : t("asm.prem.yourOrientation")}
               </h1>
-              <p className="mt-1 text-sm leading-relaxed text-stone-600">{orientation.profileSummary}</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{orientation.profileSummary}</p>
             </div>
           </div>
           <div className="mt-4">
-            <h2 className="text-xs font-bold uppercase tracking-wide text-stone-500">Tes forces</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("asm.prem.strengths")}</h2>
             <div className="mt-2">
               <StrengthsBadges strengths={orientation.strengths} />
             </div>
@@ -178,11 +188,11 @@ export default function PremiumResultPage() {
 
         {/* ------------------------- 4 sections ------------------------- */}
         <Tabs defaultValue="orientation" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 gap-1 sm:grid-cols-4" aria-label="Sections du résultat Premium">
-            <TabsTrigger value="orientation" className="gap-1.5"><Compass className="h-4 w-4" aria-hidden />Orientation</TabsTrigger>
-            <TabsTrigger value="soft-skills" className="gap-1.5"><Sprout className="h-4 w-4" aria-hidden />Soft skills</TabsTrigger>
-            <TabsTrigger value="resources" className="gap-1.5"><BookOpen className="h-4 w-4" aria-hidden />Ressources</TabsTrigger>
-            <TabsTrigger value="roadmap" className="gap-1.5"><Map className="h-4 w-4" aria-hidden />Parcours</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 gap-1 sm:grid-cols-4" aria-label={t("asm.prem.tabsLabel")}>
+            <TabsTrigger value="orientation" className="gap-1.5"><Compass className="h-4 w-4" aria-hidden />{t("asm.prem.tab.orientation")}</TabsTrigger>
+            <TabsTrigger value="soft-skills" className="gap-1.5"><Sprout className="h-4 w-4" aria-hidden />{t("asm.prem.tab.softSkills")}</TabsTrigger>
+            <TabsTrigger value="resources" className="gap-1.5"><BookOpen className="h-4 w-4" aria-hidden />{t("asm.prem.tab.resources")}</TabsTrigger>
+            <TabsTrigger value="roadmap" className="gap-1.5"><Map className="h-4 w-4" aria-hidden />{t("asm.prem.tab.roadmap")}</TabsTrigger>
           </TabsList>
 
           {/* 1 — Orientation */}
@@ -198,9 +208,9 @@ export default function PremiumResultPage() {
             )}
             {alternatives.length > 0 && (
               <div>
-                <h2 className="mb-2.5 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-stone-500">
+                <h2 className="mb-2.5 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
                   <Target className="h-4 w-4" aria-hidden />
-                  Deux alternatives crédibles
+                  {t("asm.prem.alternatives")}
                 </h2>
                 <div className="space-y-3">
                   {alternatives.map((field) => (
@@ -218,9 +228,8 @@ export default function PremiumResultPage() {
 
           {/* 2 — Soft skills */}
           <TabsContent value="soft-skills" className="mt-4 space-y-4">
-            <p className="text-sm text-stone-600">
-              Tes trois priorités, estimées à partir de tes 22 réponses. Une action pratique par compétence : 
-              petite, concrète, faisable cette semaine.
+            <p className="text-sm text-muted-foreground">
+              {t("asm.prem.softIntro")}
             </p>
             {orientation.softSkillPriorities.map((skill, i) => (
               <SoftSkillCard
@@ -242,9 +251,9 @@ export default function PremiumResultPage() {
               />
             )}
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-stone-500">Ressources recommandées</h2>
-              <span className="text-xs font-semibold text-stone-500">
-                {resourcesDone}/{orientation.resources.length} terminées
+              <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">{t("asm.prem.resourcesTitle")}</h2>
+              <span className="text-xs font-semibold text-muted-foreground">
+                {t("asm.prem.resourcesDone", { done: resourcesDone, total: orientation.resources.length })}
               </span>
             </div>
             <ResourceList
@@ -257,18 +266,20 @@ export default function PremiumResultPage() {
 
           {/* 4 — Roadmap */}
           <TabsContent value="roadmap" className="mt-4 space-y-4">
-            <div className="rounded-2xl border border-stone-200 bg-white p-4">
+            <div className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-sm font-bold text-stone-900">
-                  <TrendingUp className="h-4 w-4 text-orange-600" aria-hidden />
-                  Progression du parcours
+                <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
+                  <TrendingUp className="h-4 w-4 text-orange-600 dark:text-orange-400" aria-hidden />
+                  {t("asm.prem.roadmapProgress")}
                 </h2>
-                <span className="text-sm font-bold text-orange-700">{Math.round((roadmapDone / Math.max(1, orientation.roadmap.length)) * 100)}%</span>
+                <span className="text-sm font-bold text-orange-700 dark:text-orange-400">{Math.round((roadmapDone / Math.max(1, orientation.roadmap.length)) * 100)}%</span>
               </div>
               <Progress value={(roadmapDone / Math.max(1, orientation.roadmap.length)) * 100} className="mt-2.5" />
-              <p className="mt-2 text-xs text-stone-500">
-                {roadmapDone} jalon{roadmapDone > 1 ? "s" : ""} sur {orientation.roadmap.length} atteint
-                {roadmapDone > 1 ? "s" : ""} · cochez chaque tâche terminée pour faire avancer ton plan.
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t(roadmapDone > 1 ? "asm.prem.milestones.other" : "asm.prem.milestones.one", {
+                  done: roadmapDone,
+                  total: orientation.roadmap.length,
+                })}
               </p>
             </div>
             <RoadmapTasks steps={orientation.roadmap} onToggle={toggleRoadmap} />
@@ -279,12 +290,12 @@ export default function PremiumResultPage() {
           <Button asChild className="flex-1 gap-2">
             <Link href="/dashboard">
               <LayoutDashboard className="h-4 w-4" aria-hidden />
-              Ouvrir mon tableau de bord
+              {t("asm.prem.openDashboard")}
             </Link>
           </Button>
           <Button asChild variant="outline" className="flex-1">
             <Link href="/dashboard/roadmap">
-              Suivre mon parcours <ArrowRight className="h-4 w-4" aria-hidden />
+              {t("asm.prem.followRoadmap")} <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
             </Link>
           </Button>
         </div>

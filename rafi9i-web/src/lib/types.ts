@@ -9,6 +9,7 @@
  *                       the corresponding start endpoint.
  */
 import { z } from "zod";
+import { getStoredLocale, translate } from "./i18n";
 
 /* ------------------------------------------------------------------ */
 /* Core contract types                                                 */
@@ -66,7 +67,11 @@ export type OrientationResult = {
   roadmap: RoadmapStep[];
 };
 
-export type TrialState = "not_started" | "active" | "expired" | "subscribed";
+/**
+ * "active" = 3-day preview (demo mode only), "pending" = WhatsApp payment
+ * sent and awaiting admin verification, "subscribed" = Premium verified.
+ */
+export type TrialState = "not_started" | "active" | "pending" | "expired" | "subscribed";
 
 export type TrialStatus = {
   status: TrialState;
@@ -74,6 +79,33 @@ export type TrialStatus = {
   expiresAt: string | null;
   daysRemaining: number;
   accessLevel: AccessLevel;
+  /** When the WhatsApp payment request was sent (status "pending"). */
+  requestedAt?: string | null;
+};
+
+/* ------------------------------------------------------------------ */
+/* Admin — subscription management                                     */
+/* ------------------------------------------------------------------ */
+
+export type SubscriptionStatus = "free" | "pending" | "premium";
+
+export type AdminSubscriber = {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+  subscription_status: SubscriptionStatus;
+  is_premium: boolean;
+  premium_requested_at: string | null;
+  premium_activated_at: string | null;
+  premium_expires_at: string | null;
+  created_at: string | null;
+};
+
+export type AdminSubscriberList = {
+  pending_count: number;
+  items: AdminSubscriber[];
+  pagination: { current_page: number; last_page: number; per_page: number; total: number };
 };
 
 export type DashboardData = {
@@ -92,7 +124,7 @@ export type DashboardData = {
 /* Auth & profile                                                      */
 /* ------------------------------------------------------------------ */
 
-export type AppLanguage = "fr" | "ar" | "en";
+export type AppLanguage = "fr" | "ar" | "ary" | "en";
 
 export type UserProfile = {
   id: string;
@@ -177,35 +209,41 @@ export type AssessmentSession = AssessmentOverview & {
   sessionId: string;
 };
 
+/**
+ * Validation message resolved lazily (at parse time), so it follows the
+ * current UI language. Keys live in lib/translations/content.ts.
+ */
+const required = (key: string) => ({ error: () => translate(getStoredLocale(), `cnt.validation.${key}`) });
+
 /* ------------------------------------------------------------------ */
 /* Zod schemas — Basic assessment (12 questions)                       */
 /* ------------------------------------------------------------------ */
 
 export const basicSchema = z.object({
   /** 1. Filière du baccalauréat */
-  bacStream: z.string().min(1, "Sélectionne ta filière."),
+  bacStream: z.string().min(1, required("bacStream")),
   /** 2. Points forts académiques */
-  academicStrengths: z.array(z.string()).min(1, "Sélectionne au moins un point fort.").max(4),
+  academicStrengths: z.array(z.string()).min(1, required("academicStrengths")).max(4),
   /** 3. Matières préférées */
-  favouriteSubjects: z.array(z.string()).min(1, "Sélectionne au moins une matière.").max(5),
+  favouriteSubjects: z.array(z.string()).min(1, required("favouriteSubjects")).max(5),
   /** 4. Intérêts généraux */
-  interests: z.array(z.string()).min(1, "Sélectionne au moins un intérêt.").max(5),
+  interests: z.array(z.string()).min(1, required("interests")).max(5),
   /** 5. Activités préférées */
-  preferredActivities: z.array(z.string()).min(1, "Sélectionne au moins une activité.").max(4),
+  preferredActivities: z.array(z.string()).min(1, required("preferredActivities")).max(4),
   /** 6. Préférence de travail */
-  workPreference: z.string().min(1, "Sélectionne une préférence."),
+  workPreference: z.string().min(1, required("workPreference")),
   /** 7. Ville préférée */
-  city: z.string().min(1, "Sélectionne une ville."),
+  city: z.string().min(1, required("city")),
   /** 8. Public ou privé */
-  studyType: z.enum(["public", "prive", "indifferent"], { message: "Sélectionne une option." }),
+  studyType: z.enum(["public", "prive", "indifferent"], required("option")),
   /** 9. Budget approximatif */
-  budget: z.string().min(1, "Sélectionne une tranche de budget."),
+  budget: z.string().min(1, required("budget")),
   /** 10. Intérêts carrière initiaux */
-  careerInterests: z.array(z.string()).min(1, "Sélectionne au moins un domaine.").max(5),
+  careerInterests: z.array(z.string()).min(1, required("careerInterests")).max(5),
   /** 11. Confiance sur la direction */
   confidence: z.number().int().min(1).max(5),
   /** 12. Difficulté principale */
-  mainDifficulty: z.string().min(1, "Sélectionne ta difficulté principale."),
+  mainDifficulty: z.string().min(1, required("mainDifficulty")),
 });
 
 export type BasicAnswers = z.infer<typeof basicSchema>;
@@ -216,25 +254,25 @@ export type BasicAnswers = z.infer<typeof basicSchema>;
 
 export const advancedSchema = z.object({
   /** 1. Environnement de travail préféré */
-  workEnvironment: z.string().min(1, "Sélectionne un environnement."),
+  workEnvironment: z.string().min(1, required("workEnvironment")),
   /** 2. Pratique vs théorique */
-  learningStyle: z.enum(["pratique", "theorique", "equilibre"], { message: "Sélectionne une option." }),
+  learningStyle: z.enum(["pratique", "theorique", "equilibre"], required("option")),
   /** 3. Autonome vs collaboratif */
-  workMode: z.enum(["autonome", "collaboratif", "equilibre"], { message: "Sélectionne une option." }),
+  workMode: z.enum(["autonome", "collaboratif", "equilibre"], required("option")),
   /** 4. Confort de leadership */
   leadershipComfort: z.number().int().min(1).max(5),
   /** 5. Confiance en communication */
   communicationConfidence: z.number().int().min(1).max(5),
   /** 6. Mobilité géographique */
-  mobility: z.string().min(1, "Sélectionne une option."),
+  mobility: z.string().min(1, required("option")),
   /** 7. Contraintes financières */
-  financialConstraint: z.string().min(1, "Sélectionne une option."),
+  financialConstraint: z.string().min(1, required("option")),
   /** 8. Priorité carrière */
-  careerPriority: z.string().min(1, "Sélectionne une priorité."),
+  careerPriority: z.string().min(1, required("careerPriority")),
   /** 9. Objectif long terme */
-  longTermGoal: z.string().min(1, "Sélectionne un objectif."),
+  longTermGoal: z.string().min(1, required("longTermGoal")),
   /** 10. Plus grand obstacle personnel */
-  mainObstacle: z.string().min(1, "Sélectionne ton obstacle principal."),
+  mainObstacle: z.string().min(1, required("mainObstacle")),
 });
 
 export type AdvancedAnswers = z.infer<typeof advancedSchema>;

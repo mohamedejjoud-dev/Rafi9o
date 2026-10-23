@@ -23,7 +23,7 @@ const NAV_LINKS = [
 ] as const;
 
 export default function MobileNavigation({ loggedIn }: { loggedIn: boolean }) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
 
   return (
     <Sheet>
@@ -33,7 +33,7 @@ export default function MobileNavigation({ loggedIn }: { loggedIn: boolean }) {
       >
         <Menu className="h-5 w-5" aria-hidden />
       </SheetTrigger>
-      <SheetContent side="right" className="w-80 overflow-y-auto bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
+      <SheetContent side={dir === "rtl" ? "left" : "right"} className="w-80 overflow-y-auto bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
         <SheetHeader>
           <SheetTitle className="text-start">
             <RafiLogo size={32} className="text-slate-900 dark:text-white" />
@@ -52,7 +52,7 @@ export default function MobileNavigation({ loggedIn }: { loggedIn: boolean }) {
             >
               {link.href === "/agent" ? (
                 <span className="inline-flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
+                  <Bot className="h-4 w-4" aria-hidden />
                   {t(link.key)}
                 </span>
               ) : (

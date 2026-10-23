@@ -15,16 +15,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-b from-orange-500 to-orange-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_2px_rgba(56,23,16,0.18),0_6px_16px_-6px_rgba(169,84,53,0.38)] hover:-translate-y-px hover:from-orange-500 hover:to-orange-700 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_4px_rgba(56,23,16,0.16),0_10px_22px_-6px_rgba(169,84,53,0.42)]",
+          "bg-gradient-to-b from-orange-600 to-orange-700 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_2px_rgba(56,23,16,0.18),0_6px_16px_-6px_rgba(169,84,53,0.38)] hover:-translate-y-px hover:from-orange-600 hover:to-orange-800 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_4px_rgba(56,23,16,0.16),0_10px_22px_-6px_rgba(169,84,53,0.42)]",
         destructive:
           "bg-destructive text-white shadow-[0_1px_2px_rgba(56,23,16,0.18),0_6px_16px_-6px_rgba(198,54,43,0.5)] hover:-translate-y-px hover:bg-destructive/95 focus-visible:ring-destructive/25",
         outline:
-          "border border-stone-300/90 bg-white/70 text-stone-800 shadow-[0_1px_2px_rgba(56,23,16,0.05)] backdrop-blur-sm hover:-translate-y-px hover:border-orange-300 hover:bg-orange-50 hover:text-orange-900",
+          "border border-stone-300/90 bg-white/70 text-stone-800 shadow-[0_1px_2px_rgba(56,23,16,0.05)] backdrop-blur-sm hover:-translate-y-px hover:border-orange-300 hover:bg-orange-50 hover:text-orange-900 dark:border-border dark:bg-card/70 dark:text-foreground dark:shadow-none dark:hover:border-orange-800 dark:hover:bg-orange-950/50 dark:hover:text-orange-200",
         secondary:
           "bg-secondary text-secondary-foreground shadow-[0_1px_2px_rgba(56,23,16,0.06)] hover:-translate-y-px hover:bg-secondary/70 hover:text-secondary-foreground",
         ghost:
-          "text-stone-700 hover:bg-orange-100/70 hover:text-orange-900",
-        link: "text-orange-700 underline-offset-4 hover:underline",
+          "text-stone-700 hover:bg-orange-100/70 hover:text-orange-900 dark:text-slate-300 dark:hover:bg-orange-950/50 dark:hover:text-orange-200",
+        link: "text-orange-700 underline-offset-4 hover:underline dark:text-orange-300",
       },
       size: {
         default: "h-10 px-5 has-[>svg]:px-4",

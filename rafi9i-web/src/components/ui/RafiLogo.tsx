@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useI18n } from "@/lib/i18n";
 
 interface RafiLogoProps {
   iconOnly?: boolean;
@@ -19,10 +22,13 @@ export default function RafiLogo({
   onDark = false,
   className = "",
 }: RafiLogoProps) {
+  const { t } = useI18n();
+  const brandName = t("brand.name");
+
   const mark = (
     <Image
       src="/images/rafi9i-mark.png"
-      alt={iconOnly ? "Rafi9i" : ""}
+      alt={iconOnly ? brandName : ""}
       width={Math.round(size * MARK_RATIO)}
       height={size}
       className={iconOnly ? `object-contain ${className}` : "object-contain"}
@@ -35,23 +41,37 @@ export default function RafiLogo({
   const wordHeight = Math.round(size * 0.62);
   const wordWidth = Math.round(wordHeight * WORDMARK_RATIO);
 
+  // Arabic & Darija pages are RTL (set before paint), so the wordmark swaps
+  // with CSS (.rafi-wordmark-* in globals.css) and never flashes the Latin name.
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`} role="img" aria-label="Rafi9i">
+    <span className={`inline-flex items-center gap-2 ${className}`} role="img" aria-label={brandName}>
       {mark}
-      {onDark ? (
-        <Image src="/images/rafi9i-wordmark-light.png" alt="" width={wordWidth} height={wordHeight} />
-      ) : (
-        <>
-          <Image src="/images/rafi9i-wordmark.png" alt="" width={wordWidth} height={wordHeight} className="dark:hidden" />
-          <Image
-            src="/images/rafi9i-wordmark-light.png"
-            alt=""
-            width={wordWidth}
-            height={wordHeight}
-            className="hidden dark:block"
-          />
-        </>
-      )}
+      <span className="rafi-wordmark-latin">
+        {onDark ? (
+          <Image src="/images/rafi9i-wordmark-light.png" alt="" width={wordWidth} height={wordHeight} />
+        ) : (
+          <>
+            <Image src="/images/rafi9i-wordmark.png" alt="" width={wordWidth} height={wordHeight} className="dark:hidden" />
+            <Image
+              src="/images/rafi9i-wordmark-light.png"
+              alt=""
+              width={wordWidth}
+              height={wordHeight}
+              className="hidden dark:block"
+            />
+          </>
+        )}
+      </span>
+      <span
+        aria-hidden
+        lang="ar"
+        className={`rafi-wordmark-ar font-arabic font-extrabold leading-none tracking-normal ${
+          onDark ? "text-white" : "text-stone-900 dark:text-white"
+        }`}
+        style={{ fontSize: Math.round(wordHeight * 1.15) }}
+      >
+        رفيقي
+      </span>
     </span>
   );
 }

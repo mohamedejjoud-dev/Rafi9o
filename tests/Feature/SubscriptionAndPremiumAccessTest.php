@@ -134,4 +134,89 @@ class SubscriptionAndPremiumAccessTest extends TestCase
         $generateRes->assertStatus(201)
             ->assertJsonPath('data.career_path_id', $this->careerPath->id);
     }
+
+    public function test_guest_cannot_chat_with_rafi(): void
+    {
+        $this->postJson('/api/v1/agent/chat', ['message' => 'Salam'])->assertUnauthorized();
+    }
+
+    public function test_free_and_pending_users_cannot_chat_with_rafi(): void
+    {
+        Sanctum::actingAs($this->freeUser);
+        $this->postJson('/api/v1/agent/chat', ['message' => 'Salam'])
+            ->assertForbidden()
+            ->assertJson(['code' => 'premium_required']);
+
+        $this->freeUser->forceFill(['subscription_status' => 'pending', 'premium_requested_at' => now()])->save();
+        Sanctum::actingAs($this->freeUser->fresh());
+        $this->postJson('/api/v1/agent/chat', ['message' => 'Salam'])->assertForbidden();
+    }
+
+    public function test_user_with_expired_premium_cannot_chat_with_rafi(): void
+    {
+        $this->freeUser->forceFill([
+            'subscription_status' => 'premium',
+            'premium_activated_at' => now()->subMonths(2),
+            'premium_expires_at' => now()->subDay(),
+        ])->save();
+        Sanctum::actingAs($this->freeUser->fresh());
+
+        $this->postJson('/api/v1/agent/chat', ['message' => 'Salam'])->assertForbidden();
+    }
+
+    public function test_free_user_cannot_refresh_ai_insights(): void
+    {
+        Sanctum::actingAs($this->freeUser);
+
+        $this->postJson('/api/v1/assessments/results/1/ai-insights')
+            ->assertForbidden()
+            ->assertJson(['code' => 'premium_required']);
+    }
+
+    public function test_admin_list_shows_pending_requests_first_and_hides_admins(): void
+    {
+        $pendingUser = User::factory()->create([
+            'subscription_status' => 'pending',
+            'premium_requested_at' => now()->subMinutes(5),
+        ]);
+        Sanctum::actingAs($this->adminUser);
+
+        $response = $this->getJson('/api/v1/admin/subscriptions')->assertOk();
+
+        $response->assertJsonPath('data.pending_count', 1)
+            ->assertJsonPath('data.items.0.id', (string) $pendingUser->id);
+        $this->assertNotContains('admin', array_column($response->json('data.items'), 'role'));
+    }
+
+    public function test_admin_can_filter_and_search_subscribers(): void
+    {
+        $pendingUser = User::factory()->create([
+            'name' => 'Yasmine Pending',
+            'subscription_status' => 'pending',
+            'premium_requested_at' => now(),
+        ]);
+        Sanctum::actingAs($this->adminUser);
+
+        $byStatus = $this->getJson('/api/v1/admin/subscriptions?status=pending')->assertOk();
+        $this->assertSame([(string) $pendingUser->id], array_column($byStatus->json('data.items'), 'id'));
+
+        $bySearch = $this->getJson('/api/v1/admin/subscriptions?search=free_candidate')->assertOk();
+        $this->assertSame([(string) $this->freeUser->id], array_column($bySearch->json('data.items'), 'id'));
+
+        $this->getJson('/api/v1/admin/subscriptions?status=vip')->assertUnprocessable();
+    }
+
+    public function test_admin_approving_pending_request_grants_premium_access(): void
+    {
+        $this->freeUser->forceFill(['subscription_status' => 'pending', 'premium_requested_at' => now()])->save();
+
+        Sanctum::actingAs($this->adminUser);
+        $this->postJson("/api/v1/admin/users/{$this->freeUser->id}/activate-premium", ['duration_months' => 12])
+            ->assertOk();
+
+        Sanctum::actingAs($this->freeUser->fresh());
+        $this->getJson('/api/v1/trial/status')
+            ->assertOk()
+            ->assertJson(['data' => ['status' => 'subscribed', 'accessLevel' => 'premium']]);
+    }
 }

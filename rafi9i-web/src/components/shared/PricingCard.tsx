@@ -2,9 +2,11 @@
  * Rafi9i — PricingCard (Luminous Educational Edition)
  * Clean, trustworthy pricing cards with amber/orange highlights and emerald checks.
  */
+"use client";
+
 import { Check } from "lucide-react";
 import { PrimaryButton, SecondaryButton } from "./Buttons";
-import StatusBadge from "./StatusBadge";
+import { useI18n } from "@/lib/i18n";
 
 export interface PricingCardProps {
   name: string;
@@ -24,14 +26,15 @@ export default function PricingCard({
   name,
   price,
   pricePeriod,
-  recommendationLabel = "Recommandé",
-  unavailableLabel = "Bientôt Disponible",
+  recommendationLabel,
+  unavailableLabel,
   description,
   features,
   cta,
   highlighted = false,
   badge,
 }: PricingCardProps) {
+  const { t } = useI18n();
   return (
     <article
       className={`rafi-card relative flex h-full flex-col p-7 sm:p-8 transition-all duration-300 ${
@@ -49,8 +52,8 @@ export default function PricingCard({
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-2xl font-bold text-slate-950 dark:text-white">{name}</h3>
         {highlighted && !badge && (
-          <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-bold text-orange-800">
-            {recommendationLabel}
+          <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-bold text-orange-800 dark:bg-orange-950/50 dark:text-orange-300">
+            {recommendationLabel ?? t("pricing.recommended")}
           </span>
         )}
       </div>
@@ -61,11 +64,11 @@ export default function PricingCard({
         {price ? (
           <span className="text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">{price}</span>
         ) : (
-          <span className="text-2xl font-bold text-orange-600">{unavailableLabel}</span>
+          <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{unavailableLabel ?? t("status.soon")}</span>
         )}
         {price && (
-          <span className="text-xs text-slate-500">
-            {pricePeriod ?? "— pour toujours"}
+          <span className="text-xs text-muted-foreground">
+            {pricePeriod ?? t("pricing.freePeriod")}
           </span>
         )}
       </div>

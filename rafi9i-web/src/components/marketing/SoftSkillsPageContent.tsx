@@ -14,12 +14,11 @@ import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import PageContainer from "@/components/shared/PageContainer";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { PrimaryButton } from "@/components/shared/Buttons";
-import { DISCLAIMER_SHORT } from "@/lib/constants";
 import { PRODUCT_ROUTES } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
 
 export default function SoftSkillsPageContent() {
-  const { locale, dir } = useI18n();
+  const { t, locale, dir } = useI18n();
 
   const isAr = locale === "ar";
   const isAry = locale === "ary";
@@ -269,7 +268,7 @@ export default function SoftSkillsPageContent() {
         </ol>
         <p className="mx-auto mt-8 max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-4 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
           {isAr
-            ? "رافي9ي أداة لتعزيز المنهجية: الأولويات المقترحة هي محاور عمل ملموسة لمساعدتك على التفوق في المقابلات الشفوية."
+            ? "رفيقي أداة لتعزيز المنهجية: الأولويات المقترحة هي محاور عمل ملموسة لمساعدتك على التفوق في المقابلات الشفوية."
             : isAry
               ? "رافي أداة باش تقوي المنهجية ديالك: الأولويات لي كيقترح رافي هي محاور واضحة باش تنجح فالشفوي وتندمج فالقراية مزيان."
               : isEn
@@ -303,7 +302,7 @@ export default function SoftSkillsPageContent() {
             {isAr ? "اكتشف مهاراتي الأساسية" : isAry ? "اكتشف المهارات ديالي" : isEn ? "Discover My Key Skills" : "Découvrir mes compétences clés"}
           </PrimaryButton>
         </div>
-        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">{DISCLAIMER_SHORT}</p>
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">{t("footer.disclaimer")}</p>
       </section>
     </PageContainer>
   );

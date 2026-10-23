@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsPremium;
+use App\Http\Middleware\SetLocaleFromHeader;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -22,6 +24,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Stateless REST API - Bearer token authentication via Sanctum
+        $middleware->alias([
+            'premium' => EnsureUserIsPremium::class,
+            'locale' => SetLocaleFromHeader::class,
+        ]);
+
+        $middleware->api(prepend: [
+            SetLocaleFromHeader::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

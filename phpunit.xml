@@ -34,5 +34,7 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="OPENROUTER_API_KEY" value="sk-or-v1-test-fake-key-for-phpunit"/>
         <env name="GEMINI_API_KEY" value=""/>
+        <env name="ANTHROPIC_API_KEY" value=""/>
+        <env name="ANTHROPIC_WORKSPACE_ID" value=""/>
     </php>
 </phpunit>

@@ -35,7 +35,7 @@ export default function PricingPageContent() {
       <div className="mx-auto mt-12 grid max-w-4xl items-stretch gap-6 md:grid-cols-2">
         <PricingCard
           name={t("pricing.free.name")}
-          price="0 DH"
+          price={t("pub.price.free")}
           pricePeriod={t("pricing.freePeriod")}
           description={t("pricing.free.description")}
           features={[
@@ -49,7 +49,7 @@ export default function PricingPageContent() {
         />
         <PricingCard
           name={t("pricing.premium.name")}
-          price="19 DH"
+          price={t("premium.price")}
           pricePeriod={t("pricing.month")}
           recommendationLabel={t("pricing.recommended")}
           description={t("pricing.premium.description")}
@@ -62,7 +62,7 @@ export default function PricingPageContent() {
             t("pricing.premium.feature6"),
             t("pricing.premium.feature7"),
           ]}
-          cta={{ href: PRODUCT_ROUTES.register, label: t("pricing.startTrial") }}
+          cta={{ href: "/trial", label: t("pricing.startTrial") }}
           highlighted
           badge={t("pricing.available")}
         />
@@ -70,25 +70,25 @@ export default function PricingPageContent() {
 
       <section
         aria-labelledby="preview-titre"
-        className="rafi-card mx-auto mt-10 flex max-w-4xl flex-col items-start gap-5 border-indigo-500/20 bg-slate-900/80 p-7 sm:flex-row sm:items-center"
+        className="rafi-card mx-auto mt-10 flex max-w-4xl flex-col items-start gap-5 !border-orange-200 !bg-orange-50 p-7 sm:flex-row sm:items-center dark:!border-orange-900/50 dark:!bg-orange-950/30"
       >
         <span className="rafi-icon-chip shrink-0" aria-hidden>
-          <Timer className="h-5 w-5 text-cyan-300" />
+          <Timer className="h-5 w-5 text-orange-600 dark:text-orange-400" />
         </span>
         <div>
-          <h2 id="preview-titre" className="text-lg font-bold text-white">
+          <h2 id="preview-titre" className="text-lg font-bold text-foreground">
             {t("pricing.preview.title")}
           </h2>
-          <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
             {t("pricing.preview.body")}
           </p>
         </div>
       </section>
 
-      <p className="mx-auto mt-6 flex max-w-4xl items-start gap-3 rounded-2xl border border-cyan-500/30 bg-slate-900/80 p-4 text-xs leading-relaxed text-slate-300 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-        <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" aria-hidden />
+      <p className="mx-auto mt-6 flex max-w-4xl items-start gap-3 rounded-2xl border border-border bg-card p-4 text-xs leading-relaxed text-muted-foreground shadow-sm">
+        <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-orange-600 dark:text-orange-400" aria-hidden />
         <span>
-          <strong className="text-white">{t("pricing.payment.title")}</strong>{" "}
+          <strong className="text-foreground">{t("pricing.payment.title")}</strong>{" "}
           {t("pricing.payment.body")}
         </span>
       </p>
@@ -99,22 +99,22 @@ export default function PricingPageContent() {
           {faq.map((entry) => (
             <details
               key={entry.question}
-              className="rafi-card group border-white/10 bg-slate-900/60 px-6 py-4.5 transition-all [&_summary::-webkit-details-marker]:hidden"
+              className="rafi-card group px-6 py-4.5 transition-all [&_summary::-webkit-details-marker]:hidden"
             >
-              <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-semibold text-white">
+              <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-semibold text-foreground">
                 {entry.question}
-                <span className="text-xl font-bold text-cyan-400 transition-transform group-open:rotate-45" aria-hidden>
+                <span className="text-xl font-bold text-orange-600 transition-transform dark:text-orange-400 group-open:rotate-45" aria-hidden>
                   +
                 </span>
               </summary>
-              <p className="mt-3.5 text-sm leading-relaxed text-slate-300/85">{entry.answer}</p>
+              <p className="mt-3.5 text-sm leading-relaxed text-muted-foreground">{entry.answer}</p>
             </details>
           ))}
         </div>
       </section>
 
       <section className="my-20 text-center">
-        <h2 className="text-3xl font-extrabold text-white sm:text-4xl">{t("pricing.final.title")}</h2>
+        <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl">{t("pricing.final.title")}</h2>
         <div className="mt-8 flex justify-center">
           <PrimaryButton href={PRODUCT_ROUTES.register} size="lg">
             {t("pricing.final.button")}

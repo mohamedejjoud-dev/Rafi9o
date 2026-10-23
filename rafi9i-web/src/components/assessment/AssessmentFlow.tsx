@@ -89,7 +89,7 @@ export default function AssessmentFlow({
 }: AssessmentFlowProps) {
   const router = useRouter();
   const store = useAssessmentStore();
-  const { locale, dir } = useI18n();
+  const { t, locale, dir } = useI18n();
 
   const [hydrated, setHydrated] = useState(false);
   const [phase, setPhase] = useState<FlowPhase>("intro");
@@ -113,8 +113,8 @@ export default function AssessmentFlow({
   /* Rotate loading messages during result generation. */
   useEffect(() => {
     if (phase !== "submitting") return;
-    const t = setInterval(() => setLoadingMsgIndex((i) => (i + 1) % submitMessages.length), 1400);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setLoadingMsgIndex((i) => (i + 1) % submitMessages.length), 1400);
+    return () => clearInterval(timer);
   }, [phase, submitMessages.length]);
 
   const total = questions.length;
@@ -266,12 +266,12 @@ export default function AssessmentFlow({
       locale === "ar" ? "ابدأ الآن" : locale === "ary" ? "بدا دابا" : locale === "en" ? "Start" : "Commencer";
     const introDesc =
       locale === "ar"
-        ? `${total} أسئلة · حوالي 6 دقائق · تُحفظ إجاباتك تلقائياً. يمكنك مراجعة الملخص قبل تأكيد النتائج.`
+        ? `${total} أسئلة · حوالي 10 دقائق · تُحفظ إجاباتك تلقائياً. يمكنك مراجعة الملخص قبل تأكيد النتائج.`
         : locale === "ary"
-          ? `${total} أسئلة · تقريباً 6 دقايق · الإجابات ديالك كيتسجلو تلقائياً. تقدر تشوف الملخص قبل ما تأكد النتيجة.`
+          ? `${total} أسئلة · تقريباً 10 دقايق · الإجابات ديالك كيتسجلو تلقائياً. تقدر تشوف الملخص قبل ما تأكد النتيجة.`
           : locale === "en"
-            ? `${total} questions · approx. 6 minutes · answers saved automatically. You can review your summary before finalizing.`
-            : `${total} questions · environ 6 minutes · tes réponses sont sauvegardées automatiquement. Tu pourras vérifier un récapitulatif avant de générer ton résultat.`;
+            ? `${total} questions · approx. 10 minutes · answers saved automatically. You can review your summary before finalizing.`
+            : `${total} questions · environ 10 minutes · tes réponses sont sauvegardées automatiquement. Tu pourras vérifier un récapitulatif avant de générer ton résultat.`;
 
     const point1 =
       locale === "ar"
@@ -454,7 +454,7 @@ export default function AssessmentFlow({
         aria-valuenow={Math.round(((step + 1) / total) * 100)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Progress"
+        aria-label={t("asm.progressLabel")}
       >
         <div
           className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-600 transition-all duration-500"
