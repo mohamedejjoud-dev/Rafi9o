@@ -44,7 +44,7 @@ class LocalizationTest extends TestCase
         );
     }
 
-    public function test_darija_locale_header_returns_darija_scale_labels_for_advanced_questions(): void
+    public function test_unsupported_ary_locale_header_falls_back_to_french(): void
     {
         Sanctum::actingAs(User::factory()->create([
             'subscription_status' => 'premium',
@@ -55,7 +55,7 @@ class LocalizationTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.questions.3.id', 'leadershipComfort')
-            ->assertJsonPath('data.questions.3.scale.minLabel', 'كنفضّل ننفّذ');
+            ->assertJsonPath('data.questions.3.scale.minLabel', 'Je préfère exécuter');
     }
 
     public function test_unknown_or_missing_locale_header_falls_back_to_french(): void
@@ -142,10 +142,10 @@ class LocalizationTest extends TestCase
     {
         Sanctum::actingAs(User::factory()->create());
 
-        $response = $this->postJson('/api/v1/premium/request', [], ['X-Locale' => 'ary']);
+        $response = $this->postJson('/api/v1/premium/request', [], ['X-Locale' => 'ar']);
 
         $response->assertOk()
-            ->assertJsonPath('message', 'توصلنا بالطلب ديالك ديال Premium. شي مسؤول غادي يتأكد من التحويل ديالك قريب.')
+            ->assertJsonPath('message', 'تم استلام طلب Premium. سيتحقق أحد المسؤولين من تحويلك قريبًا.')
             ->assertJsonPath('data.status', 'pending');
     }
 }

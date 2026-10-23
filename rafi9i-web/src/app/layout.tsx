@@ -88,7 +88,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("rafi_theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}else{document.documentElement.classList.remove("dark")}var l=localStorage.getItem("rafi_locale");if(l==="ar"||l==="ary"){document.documentElement.lang=l==="ary"?"ar-MA":"ar";document.documentElement.dir="rtl";document.documentElement.classList.add("font-arabic")}else if(l==="en"||l==="fr"){document.documentElement.lang=l;document.documentElement.dir="ltr";document.documentElement.classList.remove("font-arabic")}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("rafi_theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}else{document.documentElement.classList.remove("dark")}var l=localStorage.getItem("rafi_locale");if(l==="ary"){l="ar";try{localStorage.setItem("rafi_locale","ar")}catch(e){}}if(l==="ar"){document.documentElement.lang="ar";document.documentElement.dir="rtl";document.documentElement.classList.add("font-arabic")}else if(l==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr";document.documentElement.classList.remove("font-arabic")}else{document.documentElement.lang="fr";document.documentElement.dir="ltr";document.documentElement.classList.remove("font-arabic")}}catch(e){}})();`,
           }}
         />
       </head>

@@ -23,14 +23,12 @@ const MESSAGES: Record<Locale, (name: string, email: string) => string> = {
     `Hi! I'd like to activate Rafi9i Premium (${PREMIUM_PRICE_DH} DH).\nName: ${name}\nAccount email: ${email}\nI'll send the transfer receipt here.`,
   ar: (name, email) =>
     `السلام عليكم! أرغب في تفعيل رفيقي بريميوم (${PREMIUM_PRICE_DH} درهم).\nالاسم: ${name}\nبريد الحساب: ${email}\nسأرسل إثبات التحويل هنا.`,
-  ary: (name, email) =>
-    `السلام! بغيت نفعّل رفيقي بريميوم (${PREMIUM_PRICE_DH} درهم).\nالسمية: ${name}\nالإيميل ديال الحساب: ${email}\nغادي نصيفط ليكم الوصل ديال التحويل هنا.`,
 };
 
-/** Long date in the UI language (Arabic & Darija use Moroccan Arabic formatting). */
+/** Long date in the UI language (Arabic uses Moroccan Arabic formatting). */
 export function formatPremiumDate(iso: string | null | undefined, locale: Locale): string {
   if (!iso) return "—";
-  const intlLocale = locale === "ar" || locale === "ary" ? "ar-MA" : locale === "en" ? "en-GB" : "fr-FR";
+  const intlLocale = locale === "ar" ? "ar-MA" : locale === "en" ? "en-GB" : "fr-FR";
   try {
     return new Intl.DateTimeFormat(intlLocale, { dateStyle: "long" }).format(new Date(iso));
   } catch {

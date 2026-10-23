@@ -124,7 +124,7 @@ export type DashboardData = {
 /* Auth & profile                                                      */
 /* ------------------------------------------------------------------ */
 
-export type AppLanguage = "fr" | "ar" | "ary" | "en";
+export type AppLanguage = "fr" | "ar" | "en";
 
 export type UserProfile = {
   id: string;

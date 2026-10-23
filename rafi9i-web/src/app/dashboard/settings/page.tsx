@@ -30,7 +30,6 @@ import type { AppLanguage } from "@/lib/types";
 const LANGUAGE_LABELS: Record<AppLanguage, string> = {
   fr: "Français",
   ar: "العربية",
-  ary: "الدارجة",
   en: "English",
 };
 

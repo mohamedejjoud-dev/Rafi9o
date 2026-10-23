@@ -302,7 +302,7 @@ function AskCard({ data, onPick }: { data: AskData; onPick: (id: string, label: 
 function MessageBubble({ msg, onAskPick }: { msg: ChatMessage; onAskPick: (id: string, label: string) => void }) {
   const { t, locale } = useI18n();
   const isRafi = msg.role === "rafi";
-  const timeLocale = locale === "ar" || locale === "ary" ? "ar-MA" : locale;
+  const timeLocale = locale === "ar" ? "ar-MA" : locale;
 
   return (
     <div className={`flex gap-2.5 ${isRafi ? "items-end" : "items-end flex-row-reverse"}`}>

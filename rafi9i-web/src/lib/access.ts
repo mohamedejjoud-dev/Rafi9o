@@ -72,10 +72,10 @@ export function trialBadge(
   }
 }
 
-type DateLocale = "fr" | "en" | "ar" | "ary";
+type DateLocale = "fr" | "en" | "ar";
 
 function intlLocale(locale: DateLocale): string {
-  return locale === "ar" || locale === "ary" ? "ar-MA" : locale === "en" ? "en-GB" : "fr-FR";
+  return locale === "ar" ? "ar-MA" : locale === "en" ? "en-GB" : "fr-FR";
 }
 
 export function formatDateTime(iso: string | null, locale: DateLocale = "fr"): string {

@@ -103,22 +103,18 @@ export default function QuestionCard({ question, value, error, onChange }: Quest
   const countLabel =
     locale === "ar"
       ? `${selectedList.length} محدد${question.maxSelections ? ` / ${question.maxSelections}` : ""}`
-      : locale === "ary"
-        ? `${selectedList.length} مخير${question.maxSelections ? ` / ${question.maxSelections}` : ""}`
-        : locale === "en"
-          ? `${selectedList.length}${question.maxSelections ? ` / ${question.maxSelections}` : ""} selected`
-          : question.maxSelections
-            ? `${selectedList.length} / ${question.maxSelections} sélectionné${selectedList.length > 1 ? "s" : ""}`
-            : `${selectedList.length} sélectionné${selectedList.length > 1 ? "s" : ""}`;
+      : locale === "en"
+        ? `${selectedList.length}${question.maxSelections ? ` / ${question.maxSelections}` : ""} selected`
+        : question.maxSelections
+          ? `${selectedList.length} / ${question.maxSelections} sélectionné${selectedList.length > 1 ? "s" : ""}`
+          : `${selectedList.length} sélectionné${selectedList.length > 1 ? "s" : ""}`;
 
   const maxLabel =
     locale === "ar"
       ? "تم الوصول إلى الحد الأقصى — قم بإلغاء التحديد للتغيير."
-      : locale === "ary"
-        ? "وصلتي للحد الأقصى — حيد شي خيار باش تبدل."
-        : locale === "en"
-          ? "Maximum reached — uncheck to change."
-          : "Maximum atteint — désélectionne pour changer.";
+      : locale === "en"
+        ? "Maximum reached — uncheck to change."
+        : "Maximum atteint — désélectionne pour changer.";
 
   return (
     <div dir={dir}>

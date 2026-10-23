@@ -14,7 +14,7 @@ class SetLocaleFromHeader
      *
      * @var list<string>
      */
-    public const SUPPORTED_LOCALES = ['fr', 'en', 'ar', 'ary'];
+    public const SUPPORTED_LOCALES = ['fr', 'en', 'ar'];
 
     /**
      * Apply the locale requested through the X-Locale header, falling back to French.

@@ -28,7 +28,7 @@ import { useI18n, type Locale } from "@/lib/i18n";
 /** Sentinel for failures without a server message; rendered as a translated fallback. */
 const LOAD_FAILED = "__load_failed__";
 
-const INTL_LOCALES: Record<Locale, string> = { fr: "fr-FR", en: "en-GB", ar: "ar-MA", ary: "ar-MA" };
+const INTL_LOCALES: Record<Locale, string> = { fr: "fr-FR", en: "en-GB", ar: "ar-MA" };
 
 export default function FreeResultPage() {
   const { session, loading } = useRequireAuth();

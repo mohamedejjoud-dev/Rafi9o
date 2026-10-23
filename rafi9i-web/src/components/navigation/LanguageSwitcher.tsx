@@ -85,7 +85,7 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
               : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
           }`}
         >
-          {loc.code === "ar" ? "عربي" : loc.code === "ary" ? "دارجة" : loc.code.toUpperCase()}
+          {loc.code === "ar" ? "عربي" : loc.code.toUpperCase()}
         </button>
       ))}
     </div>

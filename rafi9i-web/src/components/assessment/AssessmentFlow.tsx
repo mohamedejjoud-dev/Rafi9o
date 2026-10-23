@@ -73,12 +73,6 @@ const SUBMIT_MESSAGES_MAP: Record<string, string[]> = {
     "حساب نسب التوافق لملفك…",
     "صياغة التوصيات المخصصة…",
   ],
-  ary: [
-    "رافي كيحلل الإجابات ديالك…",
-    "كيقارن مع المدارس العليا فالمغرب…",
-    "كيحسب نسب التوافق ديالك…",
-    "كيوجد ليك التوصيات ديالك…",
-  ],
   en: [
     "Rafi is analyzing your answers…",
     "Comparing with Moroccan universities…",
@@ -201,16 +195,12 @@ export default function AssessmentFlow({
         currentQuestion.type === "multi"
           ? locale === "ar"
             ? "اختر خياراً واحداً على الأقل للمتابعة."
-            : locale === "ary"
-              ? "عزل خيار واحد على الأقل باش تكمل."
-              : locale === "en"
+            : locale === "en"
                 ? "Select at least one option to continue."
                 : "Sélectionne au moins une option pour continuer."
           : locale === "ar"
             ? "اختر إجابة للمتابعة."
-            : locale === "ary"
-              ? "عزل جواب باش تكمل."
-              : locale === "en"
+            : locale === "en"
                 ? "Choose an answer to continue."
                 : "Choisis une réponse pour continuer.";
       setStepError(err);
@@ -268,9 +258,7 @@ export default function AssessmentFlow({
             ? error.message
             : locale === "ar"
               ? "تعذر توليد النتيجة حالياً."
-              : locale === "ary"
-                ? "تعذر توليد النتيجة دابا."
-                : locale === "en"
+              : locale === "en"
                   ? "Unable to generate your result right now."
                   : "Impossible de générer ton résultat pour le moment."
         );
@@ -292,9 +280,7 @@ export default function AssessmentFlow({
         firstIssue?.message ??
           (locale === "ar"
             ? "يرجى الإجابة على جميع الأسئلة قبل المتابعة."
-            : locale === "ary"
-              ? "جاوب على ڭاع الأسئلة قبل ما تكمل."
-              : locale === "en"
+            : locale === "en"
                 ? "Complete all questions before proceeding."
                 : "Complète toutes les questions avant de continuer.")
       );
@@ -315,9 +301,7 @@ export default function AssessmentFlow({
         setSubmitError(
           locale === "ar"
             ? "الوضع التجريبي غير متاح أيضاً حالياً."
-            : locale === "ary"
-              ? "الوضع التجريبي حتى هو ما متاحش دابا."
-              : locale === "en"
+            : locale === "en"
                 ? "Demo mode is also currently unavailable."
                 : "Le mode démo est également indisponible pour le moment."
         );
@@ -330,9 +314,7 @@ export default function AssessmentFlow({
     const loaderMsg =
       locale === "ar"
         ? "رافي يسترجع مسودتك…"
-        : locale === "ary"
-          ? "رافي كيسترجع المسودة ديالك…"
-          : locale === "en"
+        : locale === "en"
             ? "Rafi is retrieving your draft…"
             : "Rafi récupère ton brouillon…";
     return <PageLoader message={loaderMsg} />;
@@ -341,40 +323,32 @@ export default function AssessmentFlow({
   /* ---------------------------- Intro ---------------------------- */
   if (phase === "intro") {
     const startText =
-      locale === "ar" ? "ابدأ الآن" : locale === "ary" ? "بدا دابا" : locale === "en" ? "Start" : "Commencer";
+      locale === "ar" ? "ابدأ الآن" : locale === "en" ? "Start" : "Commencer";
     const introDesc =
       locale === "ar"
         ? `${total} أسئلة · حوالي 10 دقائق · تُحفظ إجاباتك تلقائياً. يمكنك مراجعة الملخص قبل تأكيد النتائج.`
-        : locale === "ary"
-          ? `${total} أسئلة · تقريباً 10 دقايق · الإجابات ديالك كيتسجلو تلقائياً. تقدر تشوف الملخص قبل ما تأكد النتيجة.`
-          : locale === "en"
+        : locale === "en"
             ? `${total} questions · approx. 10 minutes · answers saved automatically. You can review your summary before finalizing.`
             : `${total} questions · environ 10 minutes · tes réponses sont sauvegardées automatiquement. Tu pourras vérifier un récapitulatif avant de générer ton résultat.`;
 
     const point1 =
       locale === "ar"
         ? "سؤال واحد في كل شاشة بدون ضغط."
-        : locale === "ary"
-          ? "سؤال واحد فكل صفحة، بلا ستريس."
-          : locale === "en"
+        : locale === "en"
             ? "One question at a time, stress-free."
             : "Une question à la fois, sans pression.";
 
     const point2 =
       locale === "ar"
         ? "أجب بعفوية: لا توجد إجابات خاطئة."
-        : locale === "ary"
-          ? "جاوب بعفوية: ما كاين حتى جواب غالط."
-          : locale === "en"
+        : locale === "en"
             ? "Answer spontaneously: there are no wrong answers."
             : "Réponds spontanément : il n'y a pas de mauvaise réponse.";
 
     const point3 =
       locale === "ar"
         ? "رافي يستنتج الشعب ونقاط قوتك الأنسب."
-        : locale === "ary"
-          ? "رافي كيحدد ليك المدارس ونقاط القوة ديالك."
-          : locale === "en"
+        : locale === "en"
             ? "Rafi deduces your best-fit fields and strengths."
             : "Rafi en déduit tes filières et forces prioritaires.";
 
@@ -454,9 +428,7 @@ export default function AssessmentFlow({
     const errorSuffix =
       locale === "ar"
         ? "تم حفظ تقدمك — لم تفقد أي بيانات."
-        : locale === "ary"
-          ? "التقدم ديالك تسجل — ما ضاع والو."
-          : locale === "en"
+        : locale === "en"
             ? "Your progress is saved — nothing is lost."
             : "Ta progression est sauvegardée — rien n'est perdu.";
     return (
@@ -474,48 +446,38 @@ export default function AssessmentFlow({
   const questionNumLabel =
     locale === "ar"
       ? `السؤال ${step + 1} / ${total}`
-      : locale === "ary"
-        ? `السؤال ${step + 1} / ${total}`
-        : locale === "en"
+      : locale === "en"
           ? `Question ${step + 1} / ${total}`
           : `Question ${step + 1} / ${total}`;
 
   const foxHint = stepError
     ? locale === "ar"
       ? "لا تقلق: اختر إجابة وسنكمل فوراً!"
-      : locale === "ary"
-        ? "ما تخاف والو: عزل جواب ونكملو دابا!"
-        : locale === "en"
+      : locale === "en"
           ? "No worries: pick an answer and let's keep going!"
           : "Pas d'inquiétude : choisis une réponse et on continue !"
     : step > total / 2
       ? locale === "ar"
         ? "تجاوزت النصف، رائع! واصل هكذا."
-        : locale === "ary"
-          ? "وصلتي للنص، تبارك الله عليك! كمل بحال هكذا."
-          : locale === "en"
+        : locale === "en"
             ? "Already halfway through, great job! Keep it up."
             : "Déjà la moitié, tu gères ! Continue comme ça."
       : locale === "ar"
         ? "خذ وقتك، لا توجد إجابات خاطئة."
-        : locale === "ary"
-          ? "خد راحتك، ما كاين حتى شي جواب غالط."
-          : locale === "en"
+        : locale === "en"
             ? "Take your time, there are no wrong answers."
             : "Prends ton temps, il n'y a pas de mauvaise réponse.";
 
   const backLabel =
-    locale === "ar" ? "رجوع" : locale === "ary" ? "رجع" : locale === "en" ? "Back" : "Retour";
+    locale === "ar" ? "رجوع" : locale === "en" ? "Back" : "Retour";
 
   const nextLabel =
-    locale === "ar" ? "التالي" : locale === "ary" ? "التالي" : locale === "en" ? "Next" : "Suivant";
+    locale === "ar" ? "التالي" : locale === "en" ? "Next" : "Suivant";
 
   const reviewLabel =
     locale === "ar"
       ? "عرض الملخص"
-      : locale === "ary"
-        ? "شوف الملخص"
-        : locale === "en"
+      : locale === "en"
           ? "Review Summary"
           : "Voir le récapitulatif";
 

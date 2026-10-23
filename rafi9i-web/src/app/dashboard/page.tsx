@@ -80,7 +80,7 @@ export default function DashboardPage() {
   const limited = dashboardIsLimited(data.trial);
   const challenge = data.weeklyChallenge;
   const firstName = session.user.name.split(" ")[0];
-  const intlLocale = locale === "ar" || locale === "ary" ? "ar-MA" : locale === "en" ? "en-GB" : "fr-FR";
+  const intlLocale = locale === "ar" ? "ar-MA" : locale === "en" ? "en-GB" : "fr-FR";
   const today = new Intl.DateTimeFormat(intlLocale, { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
   return (
