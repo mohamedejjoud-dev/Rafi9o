@@ -26,7 +26,7 @@ export default function ResourceCard({ resource, saved, onToggleCompleted, onTog
   const Icon = TYPE_ICONS[resource.type];
   return (
     <article
-      className={`flex items-start gap-3 rounded-xl border p-4 transition-colors ${
+      className={`rafi-card-hover flex items-start gap-3 rounded-xl border p-4 ${
         resource.completed
           ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/50 dark:bg-emerald-950/30"
           : "border-border bg-card"

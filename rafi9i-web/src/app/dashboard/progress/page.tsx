@@ -11,7 +11,13 @@ import DemoBadge from "@/components/shared/DemoBadge";
 import ErrorState from "@/components/shared/ErrorState";
 import PageLoader from "@/components/shared/PageLoader";
 import { ScoreBar, ScoreRing } from "@/components/shared/ScoreBar";
-import TrendChart from "@/components/progress/TrendChart";
+import dynamic from "next/dynamic";
+
+/* recharts is heavy: load the chart after the page content. */
+const TrendChart = dynamic(() => import("@/components/progress/TrendChart"), {
+  ssr: false,
+  loading: () => <div className="h-52 w-full animate-pulse rounded-xl bg-muted" />,
+});
 import { api } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth-client";
 import { useAssessmentStore } from "@/lib/assessment-store";

@@ -6,7 +6,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowRight, Lock, Sprout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DemoBadge from "@/components/shared/DemoBadge";
@@ -14,7 +13,14 @@ import ErrorState from "@/components/shared/ErrorState";
 import PageLoader from "@/components/shared/PageLoader";
 import SoftSkillCard from "@/components/results/SoftSkillCard";
 import WeeklyChallengeCard from "@/components/resources/WeeklyChallengeCard";
-import { CHART_THEME, localizeWeekLabel } from "@/components/progress/TrendChart";
+import dynamic from "next/dynamic";
+import { localizeWeekLabel } from "@/lib/chart-theme";
+
+/* recharts is heavy: load the chart after the page content. */
+const SoftSkillTrendChart = dynamic(() => import("@/components/progress/SoftSkillTrendChart"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse rounded-xl bg-muted" />,
+});
 import { api } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth-client";
 import { useAssessmentStore } from "@/lib/assessment-store";
@@ -138,24 +144,7 @@ export default function SoftSkillsPage() {
             <h2 id="trend" className="text-sm font-bold text-foreground">{t("dsh.soft.trend")}</h2>
             <p className="mt-1 text-xs text-muted-foreground">{t("dsh.soft.trendBody")}</p>
             <div className="mt-3 h-52 w-full" role="img" aria-label={t("dsh.soft.trendAria")}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trend} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} vertical={false} />
-                  <XAxis
-                    dataKey="week"
-                    tick={{ fontSize: 11, fill: CHART_THEME.tick }}
-                    tickLine={false}
-                    axisLine={{ stroke: CHART_THEME.grid }}
-                  />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: CHART_THEME.tick }} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={CHART_THEME.tooltip}
-                    labelStyle={{ color: "var(--popover-foreground)" }}
-                    formatter={(value: number) => [`${value}/100`, t("dsh.soft.avgLevel")]}
-                  />
-                  <Line type="monotone" dataKey="level" stroke="#f88541" strokeWidth={2.5} dot={{ r: 3, fill: "#f88541" }} activeDot={{ r: 5 }} />
-                </LineChart>
-              </ResponsiveContainer>
+              <SoftSkillTrendChart data={trend} avgLabel={t("dsh.soft.avgLevel")} />
             </div>
           </section>
         </>

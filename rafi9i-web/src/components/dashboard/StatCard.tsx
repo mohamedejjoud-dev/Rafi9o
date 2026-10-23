@@ -3,6 +3,7 @@
  */
 "use client";
 
+import CountUp from "@/components/motion/CountUp";
 import type { LucideIcon } from "lucide-react";
 
 export default function StatCard({
@@ -20,7 +21,7 @@ export default function StatCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-4 shadow-sm ${
+      className={`rafi-card-hover rounded-2xl border p-4 shadow-sm ${
         accent
           ? "border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50 dark:border-orange-900/60 dark:from-orange-950/50 dark:to-amber-950/30"
           : "border-border bg-card"
@@ -36,7 +37,9 @@ export default function StatCard({
         </span>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       </div>
-      <p className="mt-2.5 text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-2.5 text-2xl font-bold tabular-nums text-foreground">
+        <CountUp value={value} />
+      </p>
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

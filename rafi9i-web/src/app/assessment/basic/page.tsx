@@ -15,6 +15,7 @@ import { api, demoBackend } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth-client";
 import { useAssessmentStore } from "@/lib/assessment-store";
 import { useI18n } from "@/lib/i18n";
+import { clearCachedOverview, readCachedOverview, writeCachedOverview } from "@/lib/assessment-cache";
 import { basicSchema, type AssessmentOverview } from "@/lib/types";
 
 /** Sentinel for failures without a server message; rendered as a translated fallback. */
@@ -22,24 +23,34 @@ const LOAD_FAILED = "__load_failed__";
 
 export default function BasicAssessmentPage() {
   const { session, loading } = useRequireAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [overview, setOverview] = useState<AssessmentOverview | null>(null);
   const [error, setError] = useState<string>("");
   const [fetching, setFetching] = useState(true);
 
-  const load = () => {
+  const load = (useCache = true) => {
+    const cached = useCache ? readCachedOverview("basic", locale) : null;
+    if (cached) {
+      setOverview(cached);
+      setError("");
+      setFetching(false);
+      return;
+    }
     setFetching(true);
     setError("");
     api.assessments
       .startBasic()
-      .then(setOverview)
+      .then((o) => {
+        writeCachedOverview("basic", locale, o);
+        setOverview(o);
+      })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : LOAD_FAILED))
       .finally(() => setFetching(false));
   };
 
   useEffect(() => {
     if (session) load();
-  }, [session]);
+  }, [session, locale]);
 
   if (loading || !session) return <PageLoader message={t("asm.loadingSpace")} />;
 
@@ -52,7 +63,7 @@ export default function BasicAssessmentPage() {
           <ErrorState
             title={t("asm.basic.unavailable")}
             description={error === LOAD_FAILED ? t("asm.loadError") : error}
-            onRetry={load}
+            onRetry={() => load(false)}
             onDemoFallback={() => {
               setOverview(demoBackend.startBasic());
               setError("");
@@ -93,7 +104,10 @@ export default function BasicAssessmentPage() {
             submit={(answers) => api.assessments.submitBasic(answers)}
             demoSubmit={(answers) => demoBackend.submitBasic(answers)}
             successRoute="/results/free"
-            onSubmitted={() => useAssessmentStore.getState().resetBasic()}
+            onSubmitted={() => {
+              useAssessmentStore.getState().resetBasic();
+              clearCachedOverview("basic");
+            }}
           />
         )}
       </div>

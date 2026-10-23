@@ -19,6 +19,7 @@ import { useRequireAuth } from "@/lib/auth-client";
 import { isPremiumAccess } from "@/lib/access";
 import { useAssessmentStore } from "@/lib/assessment-store";
 import { useI18n } from "@/lib/i18n";
+import { clearCachedOverview, readCachedOverview, writeCachedOverview } from "@/lib/assessment-cache";
 import { advancedSchema, type AssessmentOverview, type TrialStatus } from "@/lib/types";
 
 /** Sentinel for failures without a server message; rendered as a translated fallback. */
@@ -27,7 +28,7 @@ const LOAD_FAILED = "__load_failed__";
 export default function AdvancedAssessmentPage() {
   const { session, loading } = useRequireAuth();
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const [trial, setTrial] = useState<TrialStatus | null>(null);
   const [overview, setOverview] = useState<AssessmentOverview | null>(null);
@@ -36,14 +37,25 @@ export default function AdvancedAssessmentPage() {
 
   useEffect(() => {
     if (!session) return;
-    Promise.all([api.trial.status(), api.assessments.startAdvanced()])
-      .then(([t, o]) => {
-        setTrial(t);
+    // Check access first: the API refuses advanced questions to non-Premium
+    // users, and the page shows the unlock screen instead of an error.
+    api.trial
+      .status()
+      .then(async (status) => {
+        setTrial(status);
+        if (!isPremiumAccess(status)) return;
+        const cached = readCachedOverview("advanced", locale);
+        if (cached) {
+          setOverview(cached);
+          return;
+        }
+        const o = await api.assessments.startAdvanced();
+        writeCachedOverview("advanced", locale, o);
         setOverview(o);
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : LOAD_FAILED))
       .finally(() => setChecking(false));
-  }, [session]);
+  }, [session, locale]);
 
   if (loading || !session) return <PageLoader message={t("asm.loadingSpace")} />;
 
@@ -139,7 +151,10 @@ export default function AdvancedAssessmentPage() {
             submit={(answers) => api.assessments.submitAdvanced(answers)}
             demoSubmit={(answers) => demoBackend.submitAdvanced(answers)}
             successRoute="/results/premium"
-            onSubmitted={() => useAssessmentStore.getState().resetAdvanced()}
+            onSubmitted={() => {
+              useAssessmentStore.getState().resetAdvanced();
+              clearCachedOverview("advanced");
+            }}
           />
         )}
       </div>

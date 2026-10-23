@@ -37,7 +37,7 @@ export default function PricingCard({
   const { t } = useI18n();
   return (
     <article
-      className={`rafi-card relative flex h-full flex-col p-7 sm:p-8 transition-all duration-300 ${
+      className={`rafi-card rafi-card-hover relative flex h-full flex-col p-7 sm:p-8 ${
         highlighted
           ? "border-2 border-orange-500 shadow-xl shadow-orange-500/10"
           : "shadow-sm"

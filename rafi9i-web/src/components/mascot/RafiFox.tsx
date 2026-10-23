@@ -94,7 +94,7 @@ export default function RafiFox({
             sizes={`${size}px`}
             className="object-contain"
             style={{ filter: "drop-shadow(0 6px 8px rgba(20,18,16,0.28)) drop-shadow(0 2px 2px rgba(20,18,16,0.2))" }}
-            priority={size > 150}
+            fetchPriority={size > 150 ? "high" : undefined}
           />
           {/* Gloss + shading, clipped to the fox silhouette */}
           <span

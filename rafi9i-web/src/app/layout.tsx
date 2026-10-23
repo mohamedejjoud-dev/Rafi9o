@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { OG_DEFAULT_IMAGE, SITE_NAME, SITE_URL } from "@/lib/constants";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
+import MotionProvider from "@/components/motion/MotionProvider";
 
 /* Typography (UI/UX skill "clean, accessible, professional" pairing):
    Figtree for headings, Noto Sans for body text, and its sister family
@@ -96,8 +97,10 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <I18nProvider>
-            {children}
-            <Toaster />
+            <MotionProvider>
+              {children}
+              <Toaster />
+            </MotionProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>

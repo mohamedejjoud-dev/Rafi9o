@@ -13,6 +13,7 @@ import HowItWorks from "@/components/marketing/HowItWorks";
 import ProductPreview from "@/components/marketing/ProductPreview";
 import PricingPreview from "@/components/marketing/PricingPreview";
 import FinalCTA from "@/components/marketing/FinalCTA";
+import Reveal from "@/components/motion/Reveal";
 import { buildMetadata } from "@/lib/metadata";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/structured-data";
 
@@ -29,11 +30,21 @@ export default function LandingPage() {
       <JsonLd data={organizationJsonLd()} />
       <JsonLd data={websiteJsonLd()} />
       <Hero />
-      <ProductPillars />
-      <HowItWorks />
-      <ProductPreview />
-      <PricingPreview />
-      <FinalCTA />
+      <Reveal>
+        <ProductPillars />
+      </Reveal>
+      <Reveal>
+        <HowItWorks />
+      </Reveal>
+      <Reveal>
+        <ProductPreview />
+      </Reveal>
+      <Reveal>
+        <PricingPreview />
+      </Reveal>
+      <Reveal>
+        <FinalCTA />
+      </Reveal>
     </PublicShell>
   );
 }

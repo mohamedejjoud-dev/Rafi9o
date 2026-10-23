@@ -37,8 +37,8 @@ export default function FieldMatchCard({
     <article
       className={
         primary
-          ? "rounded-2xl border border-orange-300 bg-card p-5 shadow-md ring-1 ring-orange-200 dark:border-orange-800 dark:ring-orange-900/60 sm:p-6"
-          : "rounded-2xl border border-border bg-card p-5 shadow-sm"
+          ? "rafi-card-hover rounded-2xl border border-orange-300 bg-card p-5 shadow-md ring-1 ring-orange-200 dark:border-orange-800 dark:ring-orange-900/60 sm:p-6"
+          : "rafi-card-hover rounded-2xl border border-border bg-card p-5 shadow-sm"
       }
     >
       <div className="flex items-start justify-between gap-3">

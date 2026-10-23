@@ -32,7 +32,7 @@ export default function RafiLogo({
       width={Math.round(size * MARK_RATIO)}
       height={size}
       className={iconOnly ? `object-contain ${className}` : "object-contain"}
-      priority
+      fetchPriority="high"
     />
   );
 
