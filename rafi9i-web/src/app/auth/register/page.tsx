@@ -294,7 +294,6 @@ export default function RegisterPage() {
               </span>
             </div>
           </div>
-          <DemoBadge />
         </div>
 
         {step === 1 && (

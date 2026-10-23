@@ -213,6 +213,7 @@ async function call<T>(
   mock: () => T | Promise<T>,
   options: CallOptions = {}
 ): Promise<T> {
+  const isAuth = path.startsWith("/api/v1/auth") || path.startsWith("/auth");
   if (API_URL) {
     try {
       const headers: Record<string, string> = {
@@ -248,10 +249,22 @@ async function call<T>(
       return unwrapEnvelope<T>(await res.json());
     } catch (error) {
       if (error instanceof ApiError) throw error;
+      if (isAuth) {
+        throw new ApiError(
+          "network",
+          "Unable to reach the authentication server. Please ensure the backend is running."
+        );
+      }
       // Network failure / backend unavailable → graceful demo fallback.
       setMode("demo");
     }
   } else {
+    if (isAuth) {
+      throw new ApiError(
+        "network",
+        "API URL is not configured. Please set NEXT_PUBLIC_API_URL."
+      );
+    }
     setMode("demo");
   }
 
