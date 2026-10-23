@@ -3,9 +3,10 @@
  * Features:
  * - Real-time password requirement validation (8+ chars, letters, numbers, match)
  * - Password visibility toggles (eye / eye-off)
- * - Pre-registration email verification code sent via SMTP
+ * - Pre-registration email verification code sent via real SMTP
  * - 6-digit verification code entry with resend cooldown timer
- * - Comprehensive field-level and form-level error gestion
+ * - Clear field-level errors (no generic "The given data was invalid" message)
+ * - Exact "This email is already registered. Please sign in." error handling
  */
 "use client";
 
@@ -16,7 +17,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
   Loader2,
-  UserPlus,
   Eye,
   EyeOff,
   Check,
@@ -70,7 +70,6 @@ export default function RegisterPage() {
   // Verification state
   const [verificationCode, setVerificationCode] = useState("");
   const [codeError, setCodeError] = useState("");
-  const [devCode, setDevCode] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
   const [codeSentAlert, setCodeSentAlert] = useState(false);
 
@@ -106,9 +105,12 @@ export default function RegisterPage() {
   const onStep1Submit = form.handleSubmit(async (values) => {
     const parsed = step1Schema.safeParse(values);
     if (!parsed.success) {
-      parsed.error.issues.forEach((issue) =>
-        form.setError(String(issue.path[0]) as keyof Step1Values, { message: issue.message })
-      );
+      parsed.error.issues.forEach((issue) => {
+        const fieldName = String(issue.path[0]) as keyof Step1Values;
+        form.setError(fieldName, {
+          message: issue.message.startsWith("pub.") ? t(issue.message) : issue.message,
+        });
+      });
       return;
     }
 
@@ -117,29 +119,65 @@ export default function RegisterPage() {
     setCodeSentAlert(false);
 
     try {
-      const res = await sendVerificationCode({
+      await sendVerificationCode({
         email: values.email.trim(),
         name: values.name.trim(),
       });
 
-      if (res.dev_code) {
-        setDevCode(res.dev_code);
-      }
       setCountdown(60);
       setCodeSentAlert(true);
       setStep(2);
     } catch (e: unknown) {
       if (e instanceof ApiError && e.fieldErrors) {
+        let hasFieldErrors = false;
         Object.entries(e.fieldErrors).forEach(([field, messages]) => {
-          if (field in values) {
-            form.setError(field as keyof Step1Values, {
-              message: messages[0],
-            });
+          let targetField: keyof Step1Values | null = null;
+          if (field === "email") targetField = "email";
+          else if (field === "name") targetField = "name";
+          else if (field === "password") targetField = "password";
+          else if (field === "confirm" || field === "password_confirmation") targetField = "confirm";
+
+          if (targetField) {
+            hasFieldErrors = true;
+            let msg = messages[0];
+            const lowerMsg = (msg || "").toLowerCase();
+            if (
+              targetField === "email" &&
+              (lowerMsg.includes("already") ||
+                lowerMsg.includes("déjà") ||
+                lowerMsg.includes("مسجل") ||
+                lowerMsg.includes("unique") ||
+                lowerMsg.includes("taken"))
+            ) {
+              msg = "This email is already registered. Please sign in.";
+            } else if (
+              targetField === "confirm" &&
+              (lowerMsg.includes("match") ||
+                lowerMsg.includes("correspond") ||
+                lowerMsg.includes("متطابق"))
+            ) {
+              msg = t("pub.auth.err.mismatch") || "The password confirmation does not match.";
+            }
+            form.setError(targetField, { message: msg });
           }
         });
-        setFormError(e.message || t("pub.auth.err.registerFailed"));
+
+        // Never display the generic "The given data was invalid" message
+        if (!hasFieldErrors) {
+          const rawMsg = e.message || "";
+          if (!rawMsg.toLowerCase().includes("given data was invalid")) {
+            setFormError(rawMsg);
+          } else {
+            setFormError(t("pub.auth.err.registerFailed"));
+          }
+        }
       } else {
-        setFormError(e instanceof Error ? e.message : t("pub.auth.err.registerFailed"));
+        const rawMsg = e instanceof Error ? e.message : t("pub.auth.err.registerFailed");
+        if (!rawMsg.toLowerCase().includes("given data was invalid")) {
+          setFormError(rawMsg);
+        } else {
+          setFormError(t("pub.auth.err.registerFailed"));
+        }
       }
     } finally {
       setBusy(false);
@@ -155,17 +193,17 @@ export default function RegisterPage() {
     setCodeSentAlert(false);
 
     try {
-      const res = await sendVerificationCode({
+      await sendVerificationCode({
         email: watchedEmail.trim(),
         name: watchedName.trim(),
       });
-      if (res.dev_code) {
-        setDevCode(res.dev_code);
-      }
       setCountdown(60);
       setCodeSentAlert(true);
     } catch (e: unknown) {
-      setFormError(e instanceof Error ? e.message : t("pub.auth.err.registerFailed"));
+      const rawMsg = e instanceof Error ? e.message : t("pub.auth.err.registerFailed");
+      if (!rawMsg.toLowerCase().includes("given data was invalid")) {
+        setFormError(rawMsg);
+      }
     } finally {
       setBusy(false);
     }
@@ -203,9 +241,12 @@ export default function RegisterPage() {
       if (e instanceof ApiError && e.fieldErrors?.verification_code) {
         setCodeError(e.fieldErrors.verification_code[0]);
       } else {
-        const msg = e instanceof Error ? e.message : t("pub.auth.err.codeInvalid");
-        setCodeError(msg);
-        setFormError(msg);
+        const rawMsg = e instanceof Error ? e.message : t("pub.auth.err.codeInvalid");
+        if (!rawMsg.toLowerCase().includes("given data was invalid")) {
+          setCodeError(rawMsg);
+        } else {
+          setCodeError(t("pub.auth.err.codeInvalid"));
+        }
       }
     } finally {
       setBusy(false);
@@ -268,7 +309,7 @@ export default function RegisterPage() {
           </p>
         )}
 
-        {/* Global form error banner */}
+        {/* Global form error banner (for system/network errors only) */}
         {formError && (
           <div
             className="mt-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
@@ -293,7 +334,9 @@ export default function RegisterPage() {
               />
               {form.formState.errors.name && (
                 <p className="text-xs text-red-600 dark:text-red-400" role="alert">
-                  {t(form.formState.errors.name.message ?? "")}
+                  {form.formState.errors.name.message?.startsWith("pub.")
+                    ? t(form.formState.errors.name.message)
+                    : form.formState.errors.name.message}
                 </p>
               )}
             </div>
@@ -309,9 +352,23 @@ export default function RegisterPage() {
                 {...form.register("email")}
               />
               {form.formState.errors.email && (
-                <p className="text-xs text-red-600 dark:text-red-400" role="alert">
-                  {t(form.formState.errors.email.message ?? "")}
-                </p>
+                <div className="flex flex-wrap items-center gap-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                  <span>
+                    {form.formState.errors.email.message?.startsWith("pub.")
+                      ? t(form.formState.errors.email.message)
+                      : form.formState.errors.email.message}
+                  </span>
+                  {(form.formState.errors.email.message?.includes("already registered") ||
+                    form.formState.errors.email.message?.includes("déjà") ||
+                    form.formState.errors.email.message?.includes("مسجل")) && (
+                    <Link
+                      href="/auth/login"
+                      className="font-bold underline text-orange-700 hover:text-orange-800 dark:text-orange-400"
+                    >
+                      {t("auth.register.signIn")}
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
 
@@ -347,7 +404,9 @@ export default function RegisterPage() {
                 </div>
                 {form.formState.errors.password && (
                   <p className="text-xs text-red-600 dark:text-red-400" role="alert">
-                    {t(form.formState.errors.password.message ?? "")}
+                    {form.formState.errors.password.message?.startsWith("pub.")
+                      ? t(form.formState.errors.password.message)
+                      : form.formState.errors.password.message}
                   </p>
                 )}
               </div>
@@ -382,7 +441,9 @@ export default function RegisterPage() {
                 </div>
                 {form.formState.errors.confirm && (
                   <p className="text-xs text-red-600 dark:text-red-400" role="alert">
-                    {t(form.formState.errors.confirm.message ?? "")}
+                    {form.formState.errors.confirm.message?.startsWith("pub.")
+                      ? t(form.formState.errors.confirm.message)
+                      : form.formState.errors.confirm.message}
                   </p>
                 )}
               </div>
@@ -480,10 +541,6 @@ export default function RegisterPage() {
               )}
               {t("auth.register.step1Btn")}
             </Button>
-
-            <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-              {t("auth.register.demoNote")}
-            </p>
           </form>
         ) : (
           /* ================= STEP 2: EMAIL VERIFICATION CODE ================= */
@@ -516,27 +573,6 @@ export default function RegisterPage() {
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300 flex items-center gap-2">
                 <Check className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <span>{t("auth.register.codeSentSuccess")}</span>
-              </div>
-            )}
-
-            {/* Dev mode helper badge */}
-            {devCode && (
-              <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2">
-                <span>
-                  <strong>{t("auth.register.devCodeHint")}</strong>{" "}
-                  <code className="rounded bg-amber-200/60 px-1.5 py-0.5 font-mono text-sm font-bold text-amber-950 dark:bg-amber-900 dark:text-amber-100">
-                    {devCode}
-                  </code>
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setVerificationCode(devCode)}
-                  className="h-7 text-xs border-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900"
-                >
-                  Remplir
-                </Button>
               </div>
             )}
 

@@ -44,7 +44,9 @@ export default function LoginPage() {
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
       parsed.error.issues.forEach((issue) =>
-        form.setError(String(issue.path[0]) as keyof Values, { message: issue.message })
+        form.setError(String(issue.path[0]) as keyof Values, {
+          message: issue.message.startsWith("pub.") ? t(issue.message) : issue.message,
+        })
       );
       return;
     }
@@ -53,16 +55,32 @@ export default function LoginPage() {
     login(values)
       .then(goToNext)
       .catch((e: unknown) => {
-        if (e instanceof ApiError && e.fieldErrors) {
-          Object.entries(e.fieldErrors).forEach(([field, messages]) => {
-            if (field in values) {
-              form.setError(field as keyof Values, { message: messages[0] });
-            }
-          });
-          setFormError(e.message || t("pub.auth.err.loginFailed"));
-        } else {
-          setFormError(e instanceof Error ? e.message : t("pub.auth.err.loginFailed"));
+        if (e instanceof ApiError) {
+          if (e.fieldErrors && Object.keys(e.fieldErrors).length > 0) {
+            Object.entries(e.fieldErrors).forEach(([field, messages]) => {
+              if (field in values) {
+                form.setError(field as keyof Values, { message: messages[0] });
+              }
+            });
+            return;
+          }
+          if (e.status === 401 || e.code === "unauthorized") {
+            form.setError("password", {
+              message: t("pub.auth.err.passwordIncorrect") || "The password is incorrect or the account was not found.",
+            });
+            return;
+          }
         }
+        const msg = e instanceof Error ? e.message : t("pub.auth.err.loginFailed");
+        if (!msg.toLowerCase().includes("given data was invalid")) {
+          setFormError(msg);
+        } else {
+          form.setError("password", {
+            message: t("pub.auth.err.passwordIncorrect") || "The password is incorrect.",
+          });
+        }
+      })
+      .finally(() => {
         setBusy(null);
       });
   });
@@ -116,7 +134,9 @@ export default function LoginPage() {
             />
             {form.formState.errors.email && (
               <p className="text-xs text-red-600 dark:text-red-400" role="alert">
-                {t(form.formState.errors.email.message ?? "")}
+                {form.formState.errors.email.message?.startsWith("pub.")
+                  ? t(form.formState.errors.email.message)
+                  : form.formState.errors.email.message}
               </p>
             )}
           </div>
@@ -151,7 +171,9 @@ export default function LoginPage() {
             </div>
             {form.formState.errors.password && (
               <p className="text-xs text-red-600 dark:text-red-400" role="alert">
-                {t(form.formState.errors.password.message ?? "")}
+                {form.formState.errors.password.message?.startsWith("pub.")
+                  ? t(form.formState.errors.password.message)
+                  : form.formState.errors.password.message}
               </p>
             )}
           </div>

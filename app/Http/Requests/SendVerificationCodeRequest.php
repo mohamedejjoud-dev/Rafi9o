@@ -35,10 +35,28 @@ class SendVerificationCodeRequest extends FormRequest
      */
     public function messages(): array
     {
+        $locale = app()->getLocale();
+
+        if ($locale === 'ar') {
+            return [
+                'email.required' => 'البريد الإلكتروني مطلوب.',
+                'email.email' => 'يُرجى إدخال بريد إلكتروني صالح.',
+                'email.unique' => 'هذا البريد الإلكتروني مسجل بالفعل. يُرجى تسجيل الدخول.',
+            ];
+        }
+
+        if ($locale === 'fr') {
+            return [
+                'email.required' => "L'adresse e-mail est obligatoire.",
+                'email.email' => 'Veuillez saisir une adresse e-mail valide.',
+                'email.unique' => 'Cette adresse e-mail est déjà enregistrée. Veuillez vous connecter.',
+            ];
+        }
+
         return [
-            'email.required' => "L'adresse email est obligatoire.",
-            'email.email' => 'Veuillez saisir une adresse email valide.',
-            'email.unique' => 'Cette adresse email est déjà associée à un compte. Veuillez vous connecter.',
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already registered. Please sign in.',
         ];
     }
 }

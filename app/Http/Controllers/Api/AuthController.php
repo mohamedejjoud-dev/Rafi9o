@@ -63,26 +63,24 @@ class AuthController extends BaseApiController
                 'error' => $e->getMessage(),
             ]);
 
-            // In local/testing environment, or if mailer is log, don't block registration
-            if (app()->environment('local', 'testing') || config('mail.default') === 'log') {
-                Log::info("Verification code for {$email}: {$code}");
-                $debugPayload = app()->environment('local', 'testing') ? ['dev_code' => $code] : null;
+            $locale = app()->getLocale();
+            $errMsg = $locale === 'en'
+                ? "Unable to send verification email via SMTP: {$e->getMessage()}"
+                : ($locale === 'ar'
+                    ? "تعذر إرسال بريد التحقق عبر خادم SMTP: {$e->getMessage()}"
+                    : "Impossible d'envoyer l'e-mail de vérification via SMTP : {$e->getMessage()}");
 
-                return $this->success($debugPayload, 'Code de vérification généré (enregistré dans les journaux).');
-            }
-
-            return $this->error(
-                "Impossible d'envoyer l'e-mail de vérification via le serveur SMTP. Veuillez vérifier les paramètres SMTP de votre serveur.",
-                503
-            );
+            return $this->error($errMsg, 503);
         }
 
-        $debugPayload = app()->environment('local', 'testing') ? ['dev_code' => $code] : null;
+        $locale = app()->getLocale();
+        $successMsg = $locale === 'en'
+            ? 'A 6-digit verification code has been sent to your email address.'
+            : ($locale === 'ar'
+                ? 'تم إرسال رمز تأكيد مكون من 6 أرقام إلى بريدك الإلكتروني.'
+                : 'Un code de confirmation à 6 chiffres a été envoyé à votre adresse e-mail.');
 
-        return $this->success(
-            $debugPayload,
-            'Un code de confirmation à 6 chiffres a été envoyé à votre adresse e-mail.'
-        );
+        return $this->success(null, $successMsg);
     }
 
     /**

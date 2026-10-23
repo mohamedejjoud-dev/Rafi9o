@@ -47,15 +47,46 @@ class RegisterRequest extends FormRequest
      */
     public function messages(): array
     {
+        $locale = app()->getLocale();
+
+        if ($locale === 'ar') {
+            return [
+                'name.required' => 'الاسم مطلوب.',
+                'name.min' => 'يجب أن يتكون الاسم من حرفين على الأقل.',
+                'email.required' => 'البريد الإلكتروني مطلوب.',
+                'email.email' => 'يُرجى إدخال بريد إلكتروني صالح.',
+                'email.unique' => 'هذا البريد الإلكتروني مسجل بالفعل. يُرجى تسجيل الدخول.',
+                'password.required' => 'كلمة المرور مطلوبة.',
+                'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
+                'verification_code.required' => 'رمز التحقق مطلوب.',
+                'verification_code.size' => 'يجب أن يتكون رمز التحقق من 6 أرقام بالضبط.',
+            ];
+        }
+
+        if ($locale === 'fr') {
+            return [
+                'name.required' => 'Le nom est obligatoire.',
+                'name.min' => 'Le nom doit comporter au moins 2 caractères.',
+                'email.required' => "L'adresse e-mail est obligatoire.",
+                'email.email' => 'Veuillez saisir une adresse e-mail valide.',
+                'email.unique' => 'Cette adresse e-mail est déjà enregistrée. Veuillez vous connecter.',
+                'password.required' => 'Le mot de passe est obligatoire.',
+                'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+                'verification_code.required' => 'Le code de vérification est obligatoire.',
+                'verification_code.size' => 'Le code de vérification doit comporter exactement 6 chiffres.',
+            ];
+        }
+
         return [
-            'name.required' => 'Le nom est obligatoire.',
-            'name.min' => 'Le nom doit comporter au moins 2 caractères.',
-            'email.required' => "L'adresse email est obligatoire.",
-            'email.email' => 'Veuillez saisir une adresse email valide.',
-            'email.unique' => 'Cette adresse email est déjà associée à un compte. Veuillez vous connecter.',
-            'password.required' => 'Le mot de passe est obligatoire.',
-            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
-            'verification_code.size' => 'Le code de vérification doit comporter exactement 6 chiffres.',
+            'name.required' => 'Full name is required.',
+            'name.min' => 'Full name must be at least 2 characters.',
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already registered. Please sign in.',
+            'password.required' => 'Password is required.',
+            'password.confirmed' => 'The password confirmation does not match.',
+            'verification_code.required' => 'Verification code is required.',
+            'verification_code.size' => 'The verification code must be exactly 6 digits.',
         ];
     }
 }
